@@ -50,13 +50,16 @@
                             Nombres y Apellidos
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nº Documento
-                        </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nacionalidad
+                            Nº DNI
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Telefono
+                        </th>
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Direcion
+                        </th>
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Correo
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
@@ -73,23 +76,25 @@
                                 {{ $mechanic->codigo }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                                {{ $mechanic->nombres . ' ' . $mechanic->apellido_paterno . ' ' . $mechanic->apellido_materno }}
+                                {{ $mechanic->name . ' ' . $mechanic->apellidos }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $mechanic->nro_documento }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $mechanic->nacionalidad }}
+                                {{ $mechanic->dni }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 {{ $mechanic->telefono }}
                             </td>
-
+                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ $mechanic->direccion }}
+                            </td>
+                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ $mechanic->correo }}
+                            </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 <button type="button" id ="btn-{{ $mechanic->id }}"
-                                    class=" px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md {{ $mechanic->status_mechanic == 0 ? 'bg-green-200 text-green-700' : 'text-red-700  bg-red-200' }}"
+                                    class=" px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md {{ $mechanic->status_mechanic == 1 ? 'bg-green-200 text-green-700' : 'text-red-700  bg-red-200' }}"
                                     onclick="confirmDelete({{ $mechanic->id }}, '{{ $mechanic->status == 0 ? '¿Está seguro de desactivar este registro?' : '¿Está seguro de activar este registro?' }}')">
-                                    @if ($mechanic->status_mechanic == 0)
+                                    @if ($mechanic->status_mechanic == 1)
                                         Disponible
                                     @else
                                         No disponible

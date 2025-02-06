@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Mechanic;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException as ValidationValidationException;
 
@@ -16,7 +17,10 @@ class ServiceController extends Controller
     public function index()
     {
         $servicios = [];
-        $mechanics = Mechanic::where('status', 1)->get();
+        $mechanics = User::where('status_mechanic', 1)
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'Mecánico');
+            })->get();
         return view('service.index', compact('servicios', 'mechanics'));
     }
     public function generateCode()
@@ -25,30 +29,57 @@ class ServiceController extends Controller
         $nextCodigo = intval($lastCodigo) + 1;
         return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
     }
+    public function verDetalles(Request $request)
+    {
+        try {
+            $service = Service::findOrFail($request->serviceId);
+            return response()->json([
+                'service' => $service
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Servicio no encontrado'], 404);
+        }
+    }
+    public function cambiarEstado(Request $request)
+    {
+        try {
+            $service = Service::findOrFail($request->serviceId);
+            $service->status_service = $request->estado;
+            $service->user_update = auth()->user()->id;
+            $service->detalle_servicio = $request->descripcion;
+            $service->save();
+            return response()->json(['message' => 'Estado actualizado correctamente'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Servicio no encontrado'], 404);
+        }
+    }
     public function filtroPorfecha(Request $request)
     {
-        if (!$request->has(['fecha_desde', 'fecha_hasta']) || empty($request->fecha_desde) || empty($request->fecha_hasta)) {
+        if (!$request->filled('fecha_desde') || !$request->filled('fecha_hasta')) {
             return response()->json(['error' => 'Faltan parámetros'], 400);
         }
+
         $user = auth()->user();
-        $servicios = Service::with('drive', 'car', 'registeredBy', 'mechanic')
+
+        $servicios = Service::with('drive', 'car', 'registeredBy', 'user')
             ->whereDate('fecha_registro', '>=', $request->fecha_desde)
             ->whereDate('fecha_registro', '<=', $request->fecha_hasta);
+
         if ($request->filled('estado')) {
             $servicios->where('status_service', $request->estado);
         }
-        if ($user->hasRole('admin')) {
-            if ($request->mechanic === 'todos' || empty($request->mechanic)) {
-                return response()->json($servicios->get());
-            } else {
-                $servicios->where('user_register', $request->trabajador);
+
+        if ($user->hasRole('administrador') || $user->hasRole('secretaria')) {
+            if ($request->filled('mechanic') && $request->mechanic !== 'todos') {
+                $servicios->where('users_id', $request->mechanic);
             }
         } else {
-            $servicios->where('user_register', $user->id);
+            $servicios->where('users_id', $user->id);
         }
 
         return response()->json($servicios->get());
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -83,12 +114,16 @@ class ServiceController extends Controller
                 'descripcion' => $request->detalle,
                 'user_register' => auth()->user()->id,
                 'codigo' => $this->generateCode(),
-                'mechanics_id' => $request->mechanics_id
+                'users_id' => $request->mechanics_id
             ]);
-            return response()->json([
-                'success' => true,
-                'message' => '¡El Servicio a sido registrado',
-            ]);
+            if ($car) {
+                return response()->json([
+                    'message' => '¡El Servicio a sido registrado',
+                    'success' => true,
+                ]);
+            } else {
+                return response()->json(['error' => 'No se pudo registrar el servicio']);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

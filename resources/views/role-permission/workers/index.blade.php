@@ -3,11 +3,11 @@
         <!-- Botones de navegación -->
         <div class="mb-6">
             <a href="{{ url('roles') }}"
-                class="bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-500 transition-all duration-300 mx-1">Perfiles</a>
+                class="bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-500 transition-all duration-300 mx-1">Roles</a>
             <a href="{{ url('permissions') }}"
                 class="bg-green-600 text-white py-3 px-6 rounded-md hover:bg-teal-500 transition-all duration-300 mx-1">Permisos</a>
             <a href="{{ url('users') }}"
-                class="bg-yellow-600 text-white py-3 px-6 rounded-md hover:bg-yellow-500 transition-all duration-300 mx-1">Ejecutivos</a>
+                class="bg-yellow-600 text-white py-3 px-6 rounded-md hover:bg-yellow-500 transition-all duration-300 mx-1">Trabajadores</a>
         </div>
 
         <!-- Mensaje de estado -->
@@ -19,8 +19,8 @@
         <!-- Card de usuarios -->
         <div class="bg-white shadow-lg rounded-lg overflow-hidden">
             <div class="bg-gradient-to-r from-yellow-600 to-yellow-800 text-white p-6">
-                <h4 class="text-2xl font-semibold">Ejecutivos</h4>
-                @can('create-user')
+                <h4 class="text-2xl font-semibold">Trabajadores</h4>
+                @can('agregar-trabajadores')
                     <a href="{{ url('users/create') }}"
                         class="bg-indigo-600 text-white py-2 px-6 rounded-md hover:bg-indigo-500 transition-all duration-300 float-right">
                         Agregar
@@ -34,7 +34,8 @@
                             <th class="p-2 text-left text-gray-600">Id</th>
                             <th class="p-2 text-left text-gray-600">Nombres y Apellidos</th>
                             <th class="p-2 text-left text-gray-600">Email</th>
-                            <th class="p-2 text-left text-gray-600">Perfil</th>
+                            <th class="p-2 text-left text-gray-600">Estado</th>
+                            <th class="p-2 text-left text-gray-600">Rol</th>
                             <th class="p-2 text-left text-gray-600">Acciones</th>
                         </tr>
                     </thead>
@@ -66,7 +67,7 @@
                                     @endif
                                 </td>
                                 <td class="p-1">
-                                    @can('update-user')
+                                    @can('actualizar-trabajadores')
                                         <a href="{{ url('users/' . $user->id . '/edit') }}"
                                             class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-500 transition-all duration-300 mx-2">
                                             Editar
@@ -74,7 +75,7 @@
                                     @endcan
 
                                 <td>
-                                    @can('delete-user')
+                                    @can('eliminar-trabajadores')
                                         <a href="{{ url('users/' . $user->id . '/delete') }}"
                                             class="{{ $user->status == 1 ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500' }} text-white py-2 px-4 rounded-md transition-all duration-300 mx-2">
                                             {{ $user->status == 1 ? 'Desactivar' : 'Activar' }}

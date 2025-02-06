@@ -15,33 +15,37 @@
                 <label for="">Hasta: </label>
                 <input type="date" name="fecha_hasta" id="fecha_hasta"
                     class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
-                <select name="mechanic" id="mechanic" class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
-                    <option value="todos">Todos</option>
-                    @foreach ($mechanics as $mechanic)
-                        <option value="{{ $mechanic->id }}">{{ $mechanic->nombres }} {{ $mechanic->apellido_paterno }}
-                            {{ $mechanic->apellido_materno }}</option>
-                    @endforeach
-                </select>
-                <div>
-                    <label for="">Estado: </label>
-                    <select name="estado" id="estado" class="border border-gray-300 rounded-lg py-2 px-4">
-                        <option value="">Todos</option>
-                        <option value="0">Pendiente</option>
-                        <option value="1">Completo</option>
-                        <option value="2">En proceso</option>
+                @can('filtrar-por-trabajador-servicios')
+                    <select name="mechanic" id="mechanic" class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
+                        <option value="todos">Todos</option>
+                        @foreach ($mechanics as $mechanic)
+                            <option value="{{ $mechanic->id }}">{{ $mechanic->name }} {{ $mechanic->apellidos }}</option>
+                        @endforeach
                     </select>
-                </div>
+                @endcan
+                @can('filtrar-por-estado-servicios')
+                    <div>
+                        <label for="">Estado: </label>
+                        <select name="estado" id="estado" class="border border-gray-300 rounded-lg py-2 px-4">
+                            <option value="">Todos</option>
+                            <option value="0">Pendiente</option>
+                            <option value="1">Completo</option>
+                            <option value="2">En proceso</option>
+                        </select>
+                    </div>
+                @endcan
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
                     Buscar
                 </button>
 
 
             </form>
-            <a href="{{ route('services.create') }}"
-                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-all duration-300">
-                Agregar
-            </a>
-            {{-- @endcan --}}
+            @can('agregar-servicios')
+                <a href="{{ route('services.create') }}"
+                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-all duration-300">
+                    Agregar
+                </a>
+            @endcan
         </div>
 
         <!-- Mensajes de éxito o error -->
@@ -98,8 +102,169 @@
         @endif
     </div>
 
+    <!-- MODAL AGREGAR DETALLES -->
+    <div id="modalAgregarDetalles" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-96">
+            <!-- Encabezado del modal -->
+            <div class="flex justify-between items-center border-b px-4 py-2">
+                <h5 class="text-lg font-semibold">Agregar Detalles</h5>
+                <button class="close-modal text-gray-500 hover:text-gray-700"
+                    onclick="toggleModal('modalAgregarDetalles', false)">&times;</button>
+            </div>
+
+            <!-- Contenido del modal -->
+            <div class="p-4">
+                <form id="formAgregarDetalles">
+                    @csrf
+                    <input type="hidden" id="serviceIdAgregar">
+
+                    <!-- Selección de Estado -->
+                    <div class="mb-3">
+                        <label for="estado" class="block font-medium">Estado del Servicio</label>
+                        <select id="estado" name="estado"
+                            class="w-full border border-gray-300 rounded-lg py-2 px-4">
+                            <option value="">Seleccione un estado</option>
+                            <option value="0">Pendiente</option>
+                            <option value="1">Completo</option>
+                            <option value="2">En proceso</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcionAgregar" class="block font-medium">Detalle del Servicio</label>
+                        <textarea id="descripcionAgregar" class="w-full p-2 border rounded-lg"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+                        Guardar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL VER DETALLES -->
+    <div id="modalVerDetalles" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-96">
+            <div class="flex justify-between items-center border-b px-4 py-2">
+                <h5 class="text-lg font-semibold">Detalles del Servicio</h5>
+                <button class="close-modal text-gray-500 hover:text-gray-700"
+                    onclick="toggleModal('modalVerDetalles', false)">&times;</button>
+            </div>
+            <div class="p-4">
+                <input type="hidden" id="serviceIdDetalles">
+                <p><strong>Descripción:</strong></p>
+                <p id="descripcionVer"></p>
+            </div>
+        </div>
+    </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        window.authUser = @json(auth()->user()->load('roles'));
+
+        function toggleModal(id, show) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.toggle('hidden', !show);
+            }
+        }
+        document.getElementById("formAgregarDetalles").addEventListener("submit", function(event) {
+            event.preventDefault(); // Evita el envío por defecto
+
+            enviarDetalles();
+        });
+        async function enviarDetalles() {
+            const serviceId = document.getElementById("serviceIdAgregar").value;
+            const estado = document.getElementById("estado").value;
+            const descripcion = document.getElementById("descripcionAgregar").value;
+
+            if (!estado || !descripcion) {
+                alert("Todos los campos son obligatorios");
+                return;
+            }
+
+            const formData = {
+                serviceId,
+                estado,
+                descripcion
+            };
+
+            try {
+                const response = await fetch("{{ route('service.cambiarEstado') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Guardado',
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 2000
+                    })
+                    toggleModal("modalAgregarDetalles", false);
+                    finAllServices();
+                } else {
+                    alert("Error al guardar: " + data.message);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error,
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+            }
+        }
+
+        async function openModal(serviceId) {
+            console.log('entro');
+
+            //const serviceId = button.getAttribute('data-service-id');
+            const description = 'desc';
+
+            if (window.authUser?.roles?.some(role => role.name === 'mecanico')) {
+                document.getElementById('serviceIdAgregar').value = serviceId;
+                document.getElementById('modalAgregarDetalles').classList.remove(
+                    'hidden');
+            } else {
+                try {
+                    const response = await fetch(
+                        `{{ route('service.verDetalles') }}?serviceId=${encodeURIComponent(serviceId)}`, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        });
+
+                    if (!response.ok) {
+                        throw new Error("No se pudieron obtener los detalles del servicio.");
+                    }
+
+                    const data = await response.json();
+
+                    // Mostrar los detalles en el modal
+                    document.getElementById('serviceIdDetalles').value = serviceId;
+                    document.getElementById('descripcionVer').textContent = data.service.detalle_servicio ||
+                        'Sin descripción';
+                    document.getElementById('modalVerDetalles').classList.remove('hidden');
+
+                } catch (error) {
+                    console.error("Error al obtener detalles:", error);
+                    alert("Hubo un error al cargar los detalles del servicio.");
+                }
+            }
+        }
+
+
         function finAllServices() {
             let desde = document.getElementById('fecha_desde').value;
             let hasta = document.getElementById('fecha_hasta').value;
@@ -124,7 +289,7 @@
                         </td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${servicio.car.placa}</td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                            ${servicio.mechanic.nombres} ${servicio.mechanic.apellido_paterno} ${servicio.mechanic.apellido_materno}
+                            ${servicio.user.name} ${servicio.user.apellidos}
                         </td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm">
                             <button type="button" id="btn-${servicio.id}"
@@ -140,7 +305,17 @@
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${servicio.descripcion}</td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${servicio.fecha_registro}</td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900 mr-3">Ver detalles</a>
+                            <button type="button" onclick="openModal(${servicio.id})"
+                                class="px-3 py-1 text-white font-semibold rounded open-modal
+                                ${window.authUser?.roles?.some(role => role.name === 'mecanico') 
+                                    ? 'bg-green-600 hover:bg-green-700' 
+                                    : 'bg-blue-600 hover:bg-blue-700'}"
+                                data-service-id="${servicio.id}"
+                                data-description="${servicio.descripcion}">
+                                ${window.authUser?.roles?.some(role => role.name === 'mecanico') 
+                                    ? 'Agregar Detalles' 
+                                    : 'Ver detalles'}
+                            </button>
                         </td>
                     `;
                             tbody.appendChild(row);
@@ -159,6 +334,8 @@
             finAllServices();
         });
         document.addEventListener('DOMContentLoaded', () => {
+            window.authUserId = @json(auth()->user()->id);
+
             fecha_desde = document.getElementById('fecha_desde');
             fecha_hasta = document.getElementById('fecha_hasta');
             let today = new Date().toISOString().split('T')[0];
@@ -167,6 +344,11 @@
             if (fecha_desde && fecha_hasta) {
                 finAllServices();
             }
+
+            console.log(document.querySelectorAll('.open-modal'))
+
+
+
         });
     </script>
 

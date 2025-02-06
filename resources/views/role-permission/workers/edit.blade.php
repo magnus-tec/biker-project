@@ -16,7 +16,7 @@
                 <!-- Card de edición -->
                 <div class="bg-white shadow-md rounded-lg overflow-hidden">
                     <div class="bg-gradient-to-r from-red-600 to-red-800 text-white p-6">
-                        <h4 class="text-2xl font-semibold">Editar Ejecutivo</h4>
+                        <h4 class="text-2xl font-semibold">Editar Trabajador</h4>
                         <a href="{{ url('users') }}"
                             class="bg-red-700 hover:bg-red-500 text-white py-2 px-4 rounded-md transition-all float-right">
                             Atras
@@ -29,19 +29,59 @@
 
                             <!-- Campo Nombre -->
                             <div class="mb-4">
-                                <label for="name" class="block text-gray-700 font-medium">Nombre</label>
+                                <label for="name" class="block text-gray-700 font-medium">Nombres</label>
                                 <input type="text" name="name" id="name" value="{{ $user->name }}"
                                     class="w-full mt-2 p-3 border rounded-md focus:ring focus:ring-blue-300 focus:outline-none" />
                                 @error('name')
                                     <span class="text-red-600 text-sm">{{ $message }}</span>
                                 @enderror
                             </div>
+                            <div class="mb-4">
+                                <label for="apellidos" class="block text-gray-700 font-medium">Apellidos</label>
+                                <input type="text" name="apellidos" id="apellidos" value="{{ $user->apellidos }}"
+                                    class="w-full mt-2 p-3 border rounded-md focus:ring focus:ring-blue-300 focus:outline-none" />
+                                @error('apellidos')
+                                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="mb-4">
+                                <label for="dni" class="block text-gray-700 font-medium">DNI</label>
+                                <input type="text" name="dni" id="dni" value="{{ $user->dni }}"
+                                    class="w-full mt-2 p-3 border rounded-md focus:ring focus:ring-blue-300 focus:outline-none" />
+                                @error('dni')
+                                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="mb-4">
+                                <label for="telefono" class="block text-gray-700 font-medium">Telefono</label>
+                                <input type="text" name="telefono" id="telefono" value="{{ $user->telefono }}"
+                                    class="w-full mt-2 p-3 border rounded-md focus:ring focus:ring-blue-300 focus:outline-none" />
+                                @error('telefono')
+                                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="mb-4">
+                                <label for="direccion" class="block text-gray-700 font-medium">Direccion</label>
+                                <input type="text" name="direccion" id="direccion" value="{{ $user->direccion }}"
+                                    class="w-full mt-2 p-3 border rounded-md focus:ring focus:ring-blue-300 focus:outline-none" />
+                                @error('direccion')
+                                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="mb-4">
+                                <label for="correo" class="block text-gray-700 font-medium">Correo electronico</label>
+                                <input type="text" name="correo" id="correo" value="{{ $user->correo }}"
+                                    class="w-full mt-2 p-3 border rounded-md focus:ring focus:ring-blue-300 focus:outline-none" />
+                                @error('correo')
+                                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
 
                             <!-- Campo Email -->
                             <div class="mb-4">
-                                <label for="email" class="block text-gray-700 font-medium">Email</label>
-                                <input type="text" name="email" id="email" value="{{ $user->email }}" readonly
-                                    class="w-full mt-2 p-3 bg-gray-100 border rounded-md cursor-not-allowed" />
+                                <label for="email" class="block text-gray-700 font-medium">Usuario Email</label>
+                                <input type="text" name="email" id="email" value="{{ $user->email }}"
+                                    readonly class="w-full mt-2 p-3 bg-gray-100 border rounded-md cursor-not-allowed" />
                             </div>
 
                             <!-- Campo Contraseña -->

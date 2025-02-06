@@ -16,26 +16,42 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white">
                         {{ __('Inicio') }}
                     </x-nav-link>
-                    <a href="{{ route('drives.index') }}"
-                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Usuarios
-                    </a>
-                    <a href="{{ route('mechanics.index') }}"|
-                        class="border-transparent text-white  inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Mecanicos
-                    </a>
-                    <a href="{{ route('cars.index') }}"
-                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Vehiculos
-                    </a>
-                    <a href="{{ route('services.index') }}"
-                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Servicios Realizados
-                    </a>
-                    <a href="{{ route('garantines.index') }}"
-                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Garantias
-                    </a>
+                    @can('ver-conductores')
+                        <a href="{{ route('drives.index') }}"
+                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Usuarios
+                        </a>
+                    @endcan
+                    @can('ver-mecanicos')
+                        <a href="{{ route('mechanics.index') }}"|
+                            class="border-transparent text-white  inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Mecanicos
+                        </a>
+                    @endcan
+                    @can('ver-vehiculos')
+                        <a href="{{ route('cars.index') }}"
+                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Vehiculos
+                        </a>
+                    @endcan
+                    @can('ver-trabajadores')
+                        <a href="{{ route('workers.index') }}"
+                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Registro de Trabajadores
+                        </a>
+                    @endcan
+                    @can('ver-servicios')
+                        <a href="{{ route('services.index') }}"
+                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Servicios Realizados
+                        </a>
+                    @endcan
+                    @can('ver-garantias')
+                        <a href="{{ route('garantines.index') }}"
+                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Garantias
+                        </a>
+                    @endcan
                 </div>
             </div>
 

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -22,6 +23,20 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'apellidos',
+        'telefono',
+        'direccion',
+        'status',
+        'correo',
+        'dni',
+        'user_register',
+        'user_update',
+        'codigo',
+        'fecha_registro',
+        'fecha_actualizacion',
+        'status_mechanic',
+
+
     ];
 
     /**
@@ -43,4 +58,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    public function role()
+    {
+        return $this->belongsTo(Role::class); // Ajusta si usas otro método de relación
+    }
 }

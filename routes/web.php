@@ -17,14 +17,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'role:admin|user|mechanic'])
+    ->middleware(['auth', 'role:administrador|mecanico|secretaria|vendedor'])
     ->name('dashboard');
 Route::group(
-    ['middleware' => ['role:admin|user|mechanic']],
+    ['middleware' => ['role:administrador|mecanico|secretaria|vendedor']],
     function () {
         Route::resource('permissions', App\Http\Controllers\PermissionController::class);
         Route::get('permissions/{permissionId}/delete', [App\Http\Controllers\PermissionController::class, 'destroy']);
@@ -49,9 +49,13 @@ Route::group(
         //SERVICIOS
         Route::resource('services', App\Http\Controllers\ServiceController::class);
         Route::get('/service/listado', [ServiceController::class, 'filtroPorfecha'])->name('service.filtroPorfecha');
+        Route::post('/service/cambiarEstado', [ServiceController::class, 'cambiarEstado'])->name('service.cambiarEstado');
+        Route::get('/service/detalles', [ServiceController::class, 'verDetalles'])->name('service.verDetalles');
 
         //GARANTIAS
         Route::resource('garantines', App\Http\Controllers\GarantineController::class);
+        //TRABAJADORES CON SUS ROLES
+        Route::resource('workers', App\Http\Controllers\UserController::class);
         Route::middleware('auth')->group(function () {
             Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

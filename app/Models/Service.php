@@ -12,7 +12,7 @@ class Service extends Model
     protected $fillable = [
         'drives_id',
         'cars_id',
-        'mechanics_id',
+        'users_id',
         'descripcion',
         'user_register',
         'user_update',
@@ -55,8 +55,9 @@ class Service extends Model
     {
         return $this->belongsTo(User::class, 'user_update');
     }
-    public function mechanic()
+
+    public function user()
     {
-        return $this->belongsTo(Mechanic::class, 'mechanics_id');
+        return $this->belongsTo(User::class, 'users_id');
     }
 }

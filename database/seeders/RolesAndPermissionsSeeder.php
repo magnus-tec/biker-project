@@ -16,12 +16,12 @@ class RolesAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            'roles' => ['view-role', 'create-role', 'update-role', 'delete-role'],
-            'permissions' => ['view-permission', 'create-permission', 'update-permission', 'delete-permission'],
-            'users' => ['view-user', 'create-user', 'update-user', 'delete-user'],
-            'customers' => ['registro-clientes', 'actualizar-clientes', 'eliminar-clientes', 'agregar-clientes', 'buscar-clientes'],
-            'mechanics' => ['registro-mecanicos', 'actualizar-mecanicos', 'eliminar-mecanicos', 'agregar-mecanicos', 'buscar-mecanicos', 'lista-trabajos-mecanicos'],
-            'view-mechanics' => ['lista-trabajos'],
+            'roles' => ['ver-rol', 'crear-rol', 'actualizar-rol', 'eliminar-rol'],
+            'permissions' => ['ver-permisos', 'agregar-permisos', 'actualizar-permisos', 'eliminar-permisos'],
+            'users' => ['ver-trabajadores', 'actualizar-trabajadores', 'eliminar-trabajadores', 'agregar-trabajadores', 'buscar-trabajadores'],
+            'permisos-mecanicos' => ['ver-servicios'],
+            'permisos-secretaria' => ['actualizar-mecanicos', 'eliminar-mecanicos', 'agregar-mecanicos', 'buscar-mecanicos', 'ver-mecanicos', 'ver-vehiculos', 'actualizar-vehiculos', 'eliminar-vehiculos', 'agregar-vehiculos', 'buscar-vehiculos', 'registro-conductores', 'actualizar-conductores', 'eliminar-conductores', 'agregar-conductores', 'buscar-conductores', 'ver-conductores', 'filtrar-por-trabajador-servicios', 'filtrar-por-estado-servicios', 'agregar-servicios'],
+            'permisos-vendedor' => ['ver-garantias', 'actualizar-garantias', 'eliminar-garantias', 'agregar-garantias', 'buscar-garantias'],
         ];
 
         foreach ($permissions as $category => $perms) {
@@ -30,9 +30,10 @@ class RolesAndPermissionsSeeder extends Seeder
             }
         }
         $roles = [
-            'admin' => array_merge(...array_values($permissions)), // Admin tiene todos los permisos
-            'user' => array_merge($permissions['customers'], $permissions['mechanics']),
-            'mechanic' => array_merge($permissions['view-mechanics']),
+            'administrador' => array_merge(...array_values($permissions)), // Admin tiene todos los permisos
+            'mecanico' => array_merge($permissions['permisos-mecanicos']),
+            'secretaria' => array_merge($permissions['permisos-secretaria'], $permissions['permisos-mecanicos'], $permissions['permisos-vendedor']),
+            'vendedor' => array_merge($permissions['permisos-vendedor']),
         ];
 
         foreach ($roles as $roleName => $rolePermissions) {
@@ -46,22 +47,22 @@ class RolesAndPermissionsSeeder extends Seeder
         }
         $users = [
             [
-                'name' => 'Admin',
-                'email' => 'admin@gmail.com',
+                'name' => 'administrador',
+                'email' => 'administrador@gmail.com',
                 'password' => '12345678',
-                'role' => 'admin'
+                'role' => 'administrador'
             ],
             [
                 'name' => 'mecanico',
                 'email' => 'mecanico@gmail.com',
                 'password' => '12345678',
-                'role' => 'mechanic'
+                'role' => 'mecanico'
             ],
             [
-                'name' => 'usuario',
-                'email' => 'usuario@gmail.com',
+                'name' => 'secretaria',
+                'email' => 'secretaria@gmail.com',
                 'password' => '12345678',
-                'role' => 'user'
+                'role' => 'secretaria'
             ],
         ];
 

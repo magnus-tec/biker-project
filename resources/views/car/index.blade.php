@@ -44,13 +44,13 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nº Socio
+                            Codigo
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nombres y Apellidos
+                            Conductor
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Estado
+                            placa
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Acciones
@@ -58,42 +58,33 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    {{-- @forelse($registros as $registro)
+                    @forelse($cars as $car)
                         <tr>
                             <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                                {{ $registro->numero_socio }}
+                                {{ $car->codigo }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $registro->nombre_completo }}
+                                {{ $car->driver->nombres }} {{ $car->driver->apellido_paterno }}
+                                {{ $car->driver->apellido_materno }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                <button type="button" id ="btn-{{ $registro->id }}"
-                                    class=" px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md {{ $registro->estado == 0 ? 'bg-green-200 text-green-700' : 'text-red-700  bg-red-200' }}"
-                                    onclick="confirmDelete({{ $registro->id }}, '{{ $registro->estado == 0 ? '¿Está seguro de desactivar este registro?' : '¿Está seguro de activar este registro?' }}')">
-                                    @if ($registro->estado == 0)
+                                {{ $car->placa }}
+                            </td>
+                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <button type="button" id ="btn-{{ $car->id }}"
+                                    class=" px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md {{ $car->status == 1 ? 'bg-green-200 text-green-700' : 'text-red-700  bg-red-200' }}"
+                                    onclick="confirmDelete({{ $car->id }}, '{{ $car->status == 1 ? '¿Está seguro de desactivar este registro?' : '¿Está seguro de activar este registro?' }}')">
+                                    @if ($car->status == 1)
                                         Activado
                                     @else
                                         Deshabilitado
                                     @endif
                                 </button>
                             </td>
-                                <span
-                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {{ $registro->estado == 0 ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700' }}">
-                                    {{ ucfirst($registro->estado == 0 ? 'activo' : 'desactivado') }}
-                                </span>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium">
-                                @can('actualizar-socio')
-                                    <a href="{{ route('socios.edit', $registro->id) }}"
-                                        class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                        Editar
-                                    </a>
-                                @endcan
-                                <a href="{{ route('registro.generar-pdf', $registro->id) }}"
-                                    class="text-green-600 hover:text-green-900 mr-3" target="_blank">
-                                    PDF
+                                <a href="" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                    Editar
                                 </a>
-
                             </td>
                         </tr>
                     @empty
@@ -102,7 +93,7 @@
                                 No hay registros disponibles
                             </td>
                         </tr>
-                    @endforelse --}}
+                    @endforelse
                 </tbody>
             </table>
         </div>

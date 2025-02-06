@@ -49,7 +49,7 @@
                 <div class="flex mt-2">
                     <input name="datos_mecanico" id="datos_mecanico" type="text"
                         class="block w-full  border border-gray-300 rounded-md shadow-sm">
-                    <input name="mechanics_id" id="mechanics_id" type="text"
+                    <input name="mechanics_id" id="mechanics_id" type="hidden"
                         class="block w-full  border border-gray-300 rounded-md shadow-sm">
                     <button onclick="mostrarModal()" type="button"
                         class="px-4 py-2 bg-green-500 text-white rounded-lg  whitespace-nowrap">Seleccionar
@@ -87,8 +87,8 @@
                 data.forEach(mecanico => {
                     let row = `
                     <div class="flex justify-between items-center p-2 border-b">
-                        <span>${mecanico.nombres} ${mecanico.apellido_paterno} ${mecanico.apellido_materno} </span>
-                        <button onclick="seleccionarMecanico(${mecanico.id}, '${mecanico.nombres} ${mecanico.apellido_paterno} ${mecanico.apellido_materno}'); cerrarModal()" 
+                        <span>${mecanico.name} ${mecanico.apellidos} </span>
+                        <button onclick="seleccionarMecanico(${mecanico.id}, '${mecanico.name} ${mecanico.apellidos}'); cerrarModal()" 
                             class="px-3 py-1 bg-blue-500 text-white rounded-lg" type="button">
                             Asignar
                         </button>

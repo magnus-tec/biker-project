@@ -13,7 +13,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        return view('driver.index');
+        $drives = Drive::where('status', 1)->get();
+        return view('driver.index', compact('drives'));
     }
 
     /**
@@ -48,6 +49,7 @@ class CustomerController extends Controller
         }
         try {
             $driver = Drive::create([
+                'codigo' => $this->generateCode(),
                 'tipo_doc' => $request->tipo_doc,
                 'nro_documento' => $request->num_doc,
                 'nacionalidad' => $request->nacionalidad,
@@ -81,7 +83,12 @@ class CustomerController extends Controller
             ]);
         }
     }
-
+    public function generateCode()
+    {
+        $lastCodigo = Drive::max('codigo') ?? '0000000';
+        $nextCodigo = intval($lastCodigo) + 1;
+        return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
+    }
     /**
      * Display the specified resource.
      */

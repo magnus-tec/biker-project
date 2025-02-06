@@ -17,7 +17,7 @@
                 <h4 class="text-2xl font-semibold">Crear Rol</h4>
                 <a href="{{ url('roles') }}"
                     class="bg-red-600 text-white py-2 px-6 rounded-md hover:bg-red-500 transition-all duration-300 float-right">
-                    Eliminar
+                    Atras
                 </a>
             </div>
             <div class="p-6">

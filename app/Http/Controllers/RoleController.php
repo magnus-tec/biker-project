@@ -12,10 +12,10 @@ class RoleController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:view-role', ['only' => ['index']]);
-        $this->middleware('permission:create-role', ['only' => ['create', 'store', 'addPermissionToRole', 'givePermissionToRole']]);
-        $this->middleware('permission:update-role', ['only' => ['update', 'edit']]);
-        $this->middleware('permission:delete-role', ['only' => ['destroy']]);
+        $this->middleware('permission:ver-rol', ['only' => ['index']]);
+        $this->middleware('permission:crear-rol', ['only' => ['create', 'store', 'addPermissionToRole', 'givePermissionToRole']]);
+        $this->middleware('permission:actualizar-rol', ['only' => ['update', 'edit']]);
+        $this->middleware('permission:eliminar-rol', ['only' => ['destroy']]);
     }
 
     public function index()
@@ -43,7 +43,7 @@ class RoleController extends Controller
             'name' => $request->name
         ]);
 
-        return redirect('roles')->with('status', 'Perfil creado con éxito');
+        return redirect('roles')->with('status', 'Rol creado con éxito');
     }
 
     public function edit(Role $role)
@@ -67,14 +67,14 @@ class RoleController extends Controller
             'name' => $request->name
         ]);
 
-        return redirect('roles')->with('status', 'Perfil actualizado con éxito');
+        return redirect('roles')->with('status', 'Rol actualizado con éxito');
     }
 
     public function destroy($roleId)
     {
         $role = Role::find($roleId);
         $role->delete();
-        return redirect('roles')->with('status', 'Perfil eliminado con éxito');
+        return redirect('roles')->with('status', 'Rol eliminado con éxito');
     }
 
     public function addPermissionToRole($roleId)
@@ -102,6 +102,6 @@ class RoleController extends Controller
         $role = Role::findOrFail($roleId);
         $role->syncPermissions($request->permission);
 
-        return redirect()->back()->with('status', 'Perfil actualizado con éxito');
+        return redirect()->back()->with('status', 'Rol actualizado con éxito');
     }
 }

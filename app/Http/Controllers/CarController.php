@@ -14,7 +14,8 @@ class CarController extends Controller
      */
     public function index()
     {
-        return view('car.index');
+        $cars = Car::with('driver')->where('status', 1)->get();
+        return view('car.index', compact('cars'));
     }
 
     /**
