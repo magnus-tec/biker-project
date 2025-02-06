@@ -177,10 +177,6 @@
             const estado = document.getElementById("estado").value;
             const descripcion = document.getElementById("descripcionAgregar").value;
 
-            if (!estado || !descripcion) {
-                alert("Todos los campos son obligatorios");
-                return;
-            }
 
             const formData = {
                 serviceId,
@@ -218,7 +214,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: data.error,
+                    text: error,
                     showConfirmButton: false,
                     timer: 2000
                 })

@@ -25,18 +25,30 @@ class MechanicController extends Controller
      */
     public function create()
     {
-        return view('mechanic.create');
+        //
     }
+    // public function MecanicosDisponibles()
+    // {
+    //     $mechanics = User::where('status_mechanic', 1)
+    //         ->whereHas('roles', function ($query) {
+    //             $query->where('name', 'Mecánico');
+    //         })->get();
+
+    //     return response()->json($mechanics);
+    // }
     public function MecanicosDisponibles()
     {
         $mechanics = User::where('status_mechanic', 1)
             ->whereHas('roles', function ($query) {
                 $query->where('name', 'Mecánico');
-            })->get();
+            })
+            ->whereHas('services', function ($query) {
+                $query->where('status_service', '!=', 2); // Filtrar donde status_service NO sea 2
+            })
+            ->get();
 
         return response()->json($mechanics);
     }
-
     /**
      * Store a newly created resource in storage.
      */

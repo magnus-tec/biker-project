@@ -8,24 +8,7 @@
     <div class="max-w-7xl  mx-auto px-4 py-12">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-800">Lista de Mecanicos</h2>
-            {{-- @can('buscar-socio')
-                <form method="GET" action="{{ route('socios.index') }}" class="flex items-center">
-                    <input type="text" name="buscar" placeholder="Buscar socio..." value="{{ request('buscar') }}"
-                        class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
-                        Buscar
-                    </button>
-                </form>
-            @endcan --}}
-            {{-- @can('agregar-socio') --}}
-            <a href="{{ route('mechanics.create') }}"
-                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-all duration-300">
-                Agregar
-            </a>
-            {{-- @endcan --}}
         </div>
-
-        <!-- Mensajes de éxito o error -->
         @if (session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
                 {{ session('success') }}

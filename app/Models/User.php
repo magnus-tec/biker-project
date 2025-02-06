@@ -62,4 +62,8 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class); // Ajusta si usas otro método de relación
     }
+    public function services()
+    {
+        return $this->hasMany(Service::class, 'users_id'); // Relación con la tabla de servicios
+    }
 }
