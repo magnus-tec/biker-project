@@ -98,6 +98,7 @@ class ServiceController extends Controller
             'n_placa.required' => 'La placa es obligatoria.',
             'id_drive.required' => 'se requiere DATOS del cliente',
             'mechanics_id.required' => 'se requiere DATOS del Mecanico',
+            'detalle.required' => 'se requiere detalles del servicio a realizar',
         ];
         try {
             $request->validate([
@@ -105,6 +106,7 @@ class ServiceController extends Controller
                 'n_placa' => 'required|string',
                 'id_drive' => 'required|string|unique:cars,placa',
                 'mechanics_id' => 'required|string',
+                'detalle' => 'required|string',
             ], $messages);
         } catch (ValidationValidationException $e) {
             return response()->json(['errors' => $e->errors()], 500);
