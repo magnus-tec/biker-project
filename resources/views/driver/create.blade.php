@@ -264,6 +264,10 @@
                             timer: 2000
                         });
                     });
+            } else {
+                document.getElementById('apellido_paterno').value = '';
+                document.getElementById('apellido_materno').value = '';
+                document.getElementById('nombres').value = '';
             }
         });
     })
