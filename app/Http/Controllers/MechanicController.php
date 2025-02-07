@@ -15,7 +15,7 @@ class MechanicController extends Controller
     public function index()
     {
         $mechanics = User::whereHas('roles', function ($query) {
-            $query->where('name', 'Mecánico');
+            $query->where('name', 'mecanico');
         })->get();
         return view('mechanic.index', compact('mechanics'));
     }
@@ -27,28 +27,21 @@ class MechanicController extends Controller
     {
         //
     }
-    // public function MecanicosDisponibles()
-    // {
-    //     $mechanics = User::where('status_mechanic', 1)
-    //         ->whereHas('roles', function ($query) {
-    //             $query->where('name', 'Mecánico');
-    //         })->get();
-
-    //     return response()->json($mechanics);
-    // }
     public function MecanicosDisponibles()
     {
         $mechanics = User::where('status_mechanic', 1)
             ->whereHas('roles', function ($query) {
-                $query->where('name', 'Mecánico');
+                $query->where('name', 'mecanico');
             })
-            ->whereHas('services', function ($query) {
-                $query->where('status_service', '!=', 2); // Filtrar donde status_service NO sea 2
+            ->whereDoesntHave('services', function ($query) {
+                $query->where('status_service', 2); // Si tiene al menos un servicio con status_service = 2, lo excluye
             })
             ->get();
 
         return response()->json($mechanics);
     }
+
+
     /**
      * Store a newly created resource in storage.
      */

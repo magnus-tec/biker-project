@@ -19,7 +19,7 @@ class ServiceController extends Controller
         $servicios = [];
         $mechanics = User::where('status_mechanic', 1)
             ->whereHas('roles', function ($query) {
-                $query->where('name', 'Mecánico');
+                $query->where('name', 'mecanico');
             })->get();
         return view('service.index', compact('servicios', 'mechanics'));
     }
@@ -97,12 +97,14 @@ class ServiceController extends Controller
             'car_id.required' => 'Se quiere que se seleccione un vehiculo.',
             'n_placa.required' => 'La placa es obligatoria.',
             'id_drive.required' => 'se requiere DATOS del cliente',
+            'mechanics_id.required' => 'se requiere DATOS del Mecanico',
         ];
         try {
             $request->validate([
                 'car_id' => 'required|string',
                 'n_placa' => 'required|string',
                 'id_drive' => 'required|string|unique:cars,placa',
+                'mechanics_id' => 'required|string',
             ], $messages);
         } catch (ValidationValidationException $e) {
             return response()->json(['errors' => $e->errors()], 500);

@@ -26,7 +26,7 @@
                 @can('filtrar-por-estado-servicios')
                     <div>
                         <label for="">Estado: </label>
-                        <select name="estado" id="estado" class="border border-gray-300 rounded-lg py-2 px-4">
+                        <select name="estado-filtro" id="estado-filtro" class="border border-gray-300 rounded-lg py-2 px-4">
                             <option value="">Todos</option>
                             <option value="0">Pendiente</option>
                             <option value="1">Completo</option>
@@ -174,9 +174,10 @@
         });
         async function enviarDetalles() {
             const serviceId = document.getElementById("serviceIdAgregar").value;
-            const estado = document.getElementById("estado").value;
+            const estado = document.getElementById("estado").value || null;
             const descripcion = document.getElementById("descripcionAgregar").value;
 
+            console.log('serviceId' + serviceId, 'estado:' + estado, 'descripcion:' + descripcion);
 
             const formData = {
                 serviceId,
@@ -266,7 +267,7 @@
             let hasta = document.getElementById('fecha_hasta').value;
             let mechanicElement = document.getElementById('mechanic');
             let mechanic = mechanicElement ? mechanicElement.value : '';
-            let estadoElement = document.getElementById('estado');
+            let estadoElement = document.getElementById('estado-filtro');
             let estado = estadoElement ? estadoElement.value : '';
             fetch(
                     `{{ route('service.filtroPorfecha') }}?fecha_desde=${encodeURIComponent(desde)}&fecha_hasta=${encodeURIComponent(hasta)}&mechanic=${encodeURIComponent(mechanic)}&estado=${encodeURIComponent(estado)}`

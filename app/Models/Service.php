@@ -17,9 +17,11 @@ class Service extends Model
         'user_register',
         'user_update',
         'status',
+        'status_service',
         'fecha_registro',
         'fecha_actualizacion',
         'codigo',
+        'detalle_servicio'
     ];
 
     public $timestamps = true;
