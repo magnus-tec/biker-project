@@ -52,18 +52,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'password' => '12345678',
                 'role' => 'administrador'
             ],
-            [
-                'name' => 'mecanico',
-                'email' => 'mecanico@gmail.com',
-                'password' => '12345678',
-                'role' => 'mecanico'
-            ],
-            [
-                'name' => 'secretaria',
-                'email' => 'secretaria@gmail.com',
-                'password' => '12345678',
-                'role' => 'secretaria'
-            ],
         ];
 
         foreach ($users as $userData) {

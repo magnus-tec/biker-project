@@ -35,7 +35,8 @@ class Drive extends Model
         'user_update',
         'fecha_registro',
         'fecha_actualizacion',
-        'status'
+        'status',
+        'codigo'
     ];
 
     public $timestamps = true;
