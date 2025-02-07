@@ -22,7 +22,7 @@
                 <div>
                     <label for="num_doc" class="block text-sm font-medium text-gray-700">N° Documento</label>
                     <div class="flex mt-2">
-                        <input name="num_doc" type="text" placeholder="Ingrese Documento"
+                        <input name="num_doc" type="text" placeholder="Ingrese Documento" id="num_doc"
                             class="block w-full p-2 border border-gray-300 rounded-md shadow-sm">
                         <button id="buscarDni" class="ml-2 py-2 px-4 bg-yellow-500 text-white rounded-md"
                             type="button">
@@ -48,19 +48,19 @@
                 </div>
                 <div>
                     <label for="nombres" class="block text-sm font-medium text-gray-700">Nombres</label>
-                    <input type="text" placeholder="Nombre" name="nombres"
+                    <input type="text" placeholder="Nombre" name="nombres" id="nombres"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
                     <label for="apellido_paterno" class="block text-sm font-medium text-gray-700">Apellido
                         Paterno</label>
-                    <input type="text" placeholder="Apellido Paterno" name="apellido_paterno"
+                    <input type="text" placeholder="Apellido Paterno" name="apellido_paterno" id="apellido_paterno"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
                     <label for="apellido_materno" class="block text-sm font-medium text-gray-700">Apellido
                         Materno</label>
-                    <input type="text" placeholder="Apellido Materno" name="apellido_materno"
+                    <input type="text" placeholder="Apellido Materno" name="apellido_materno" id="apellido_materno"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
 
@@ -218,4 +218,53 @@
                 console.error('Error:', error);
             });
     });
+    document.addEventListener('DOMContentLoaded', () => {
+        // api dni
+        const Inputnum_doc = document.getElementById('num_doc');
+        const token =
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InN5c3RlbWNyYWZ0LnBlQGdtYWlsLmNvbSJ9.yuNS5hRaC0hCwymX_PjXRoSZJWLNNBeOdlLRSUGlHGA';
+
+        Inputnum_doc.addEventListener('input', () => {
+            const num_doc = Inputnum_doc.value;
+            if (num_doc.length === 8) {
+                fetch(`https://dniruc.apisperu.com/api/v1/dni/${num_doc}?token=${token}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la solicitud');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success === false) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'No se pudo encontrar el DNI',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                            document.getElementById('apellido_paterno').value = '';
+                            document.getElementById('apellido_materno').value = '';
+                            document.getElementById('nombres').value = '';
+                        } else {
+                            document.getElementById('apellido_paterno').value = data
+                                .apellidoPaterno || '';
+                            document.getElementById('apellido_materno').value = data
+                                .apellidoMaterno || '';
+                            document.getElementById('nombres').value = data.nombres || '';
+                        }
+
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un problema con la solicitud',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    });
+            }
+        });
+    })
 </script>

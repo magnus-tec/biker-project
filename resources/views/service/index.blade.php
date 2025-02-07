@@ -340,11 +340,6 @@
             if (fecha_desde && fecha_hasta) {
                 finAllServices();
             }
-
-            console.log(document.querySelectorAll('.open-modal'))
-
-
-
         });
     </script>
 
