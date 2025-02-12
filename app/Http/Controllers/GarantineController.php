@@ -13,7 +13,7 @@ class GarantineController extends Controller
      */
     public function index()
     {
-        $garantias = Garantine::with('drive', 'userRegistered')->get();
+        $garantias = Garantine::where('status', 1)->get();
         return view('garantine.index', compact('garantias'));
     }
 
@@ -30,19 +30,16 @@ class GarantineController extends Controller
      */
     public function store(Request $request)
     {
-        // Mensajes personalizados de validación
         $messages = [
-            'marca.required' => 'La marca es obligatorio.',
-            'modelo.required' => 'El modelo es obligatorio.',
-            'nro_chasis.required' => 'El numero de chasis es obligatorio.',
-            'drive_id.required' => 'El numero de documento es obligatorio.',
+            'n_documento.required' => 'El numero de documento es obligatorio.',
+            'datos_cliente.required' => 'Los datos del cliente son  obligatorio.',
+            'nro_motor.unique' => 'El numero de motor ya a sido registrado como vendido.',
         ];
         try {
             $request->validate([
-                'marca' => 'required|string',
-                'modelo' => 'required|string',
-                'nro_chasis' => 'required|string',
-                'drive_id' => 'required|string'
+                'n_documento' => 'required|string',
+                'datos_cliente' => 'required|string',
+                'nro_motor' => 'required|unique:garantines,nro_motor',
             ], $messages);
         } catch (ValidationValidationException $e) {
             return response()->json(['errors' => $e->errors()], 500);
@@ -57,12 +54,20 @@ class GarantineController extends Controller
                 'nro_motor' => $request->nro_motor,
                 'color' => $request->color,
                 'user_register' => auth()->user()->id,
-                'drives_id' => $request->drive_id
+                'nro_documento' => $request->n_documento,
+                'nombres_apellidos' => $request->datos_cliente
             ]);
-            return response()->json([
-                'success' => true,
-                'message' => '¡La Garantianza  ha sido registrado con éxito!',
-            ]);
+            if ($garantine) {
+                return response()->json([
+                    'success' => true,
+                    'message' => '¡La Garantianza  ha sido registrado con éxito!',
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al registrar la Garantianza',
+                ]);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

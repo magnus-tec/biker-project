@@ -21,10 +21,10 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'role:administrador|mecanico|secretaria|vendedor'])
+    ->middleware(['auth', 'role:administrador|mecanico|ventas'])
     ->name('dashboard');
 Route::group(
-    ['middleware' => ['role:administrador|mecanico|secretaria|vendedor']],
+    ['middleware' => ['role:administrador|mecanico|ventas']],
     function () {
         Route::resource('permissions', App\Http\Controllers\PermissionController::class);
         Route::get('permissions/{permissionId}/delete', [App\Http\Controllers\PermissionController::class, 'destroy']);
@@ -44,7 +44,9 @@ Route::group(
         //VEHICULOS
         Route::resource('cars', App\Http\Controllers\CarController::class);
         Route::get('car/buscarPorPlaca', [App\Http\Controllers\CarController::class, 'searchDriverPorPlaca'])->name('buscar.DriverPorPlaca');
-        Route::get('car/buscarPornumeroDoc', [App\Http\Controllers\CarController::class, 'searchBuscarDriver'])->name('buscar.Driver');
+        Route::get('car/buscarDrive', [App\Http\Controllers\CarController::class, 'searchBuscarDriver'])->name('buscar.Driver');
+        Route::get('car/buscarPornroMotor', [App\Http\Controllers\CarController::class, 'searchBuscarVehiculo'])->name('buscar.Vehiculo');
+
 
         //SERVICIOS
         Route::resource('services', App\Http\Controllers\ServiceController::class);

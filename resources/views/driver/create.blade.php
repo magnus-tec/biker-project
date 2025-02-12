@@ -13,7 +13,7 @@
                     <label for="tipo_doc" class="block text-sm font-medium text-gray-700">Tipo Documento</label>
                     <select name="tipo_doc" id="tipo_doc"
                         class="form-select block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
-                        <option value="notDoc">Seleccione un Documento</option>
+                        <option value="">Seleccione un Documento</option>
                         <option value="DNI">DNI</option>
                         <option value="Pasaporte">Pasaporte</option>
                         <option value="Carnet">Carnet de Extranjería</option>
@@ -33,7 +33,7 @@
                 <div>
                     <label for="nacionalidad" class="block text-sm font-medium text-gray-700">Nacionalidad</label>
                     <input type="text" name="nacionalidad" id="nacionalidad"
-                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm" required>
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div class="col-span-1 lg:col-span-1 row-span-4">
                     <label for="photo" class="block text-sm font-medium text-gray-700">Foto</label>
@@ -84,8 +84,8 @@
                     </select>
                 </div>
                 <div>
-                    <label for="nro_unidad" class="block text-sm font-medium text-gray-700">Número de Unidad</label>
-                    <input type="text" name="nro_unidad"
+                    <label for="nro_motor" class="block text-sm font-medium text-gray-700">Número de Motor</label>
+                    <input type="text" name="nro_motor"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>

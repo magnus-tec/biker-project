@@ -14,25 +14,19 @@
                     <div class="flex mt-2">
                         <input name="n_documento" id="n_documento" type="text" placeholder="Ingrese Documento"
                             class="block w-full  border border-gray-300 rounded-md shadow-sm">
-                        <button id="buscarDrive" class="ml-2 py-2 px-4 bg-yellow-500 text-white rounded-md"
-                            type="button" onclick="searchDrive()">
+                        <button class="ml-2 py-2 px-4 bg-yellow-500 text-white rounded-md" type="button"
+                            onclick="apiDNI()">
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
                 </div>
                 <div>
-                    <label for="datos_driver" class="block text-sm font-medium text-gray-700">Nombres y
+                    <label for="datos_cliente" class="block text-sm font-medium text-gray-700">Nombres y
                         apellidos</label>
                     <div class="flex mt-2">
-                        <input name="datos_driver" id="datos_driver" type="text" placeholder="Ingrese Documento"
+                        <input name="datos_cliente" id="datos_cliente" type="text" placeholder="Ingrese Documento"
                             class="block w-full  border border-gray-300 rounded-md shadow-sm">
 
-                    </div>
-                </div>
-                <div>
-                    <div class="flex mt-2">
-                        <input name="drive_id" id="drive_id" type="hidden"
-                            class="block w-full  border border-gray-300 rounded-md shadow-sm">
                     </div>
                 </div>
             </div>
@@ -84,45 +78,91 @@
 </x-app-layout>
 <script>
     let formGarantine = document.getElementById('formGarantine');
+    const Inputnum_doc = document.getElementById('n_documento');
 
-    function searchDrive() {
-        let n_documento = document.getElementById('n_documento').value;
 
-        fetch(`{{ route('buscar.Driver') }}?n_documento=${encodeURIComponent(n_documento)}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error('Error en la respuesta del servidor', err);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
+    Inputnum_doc.addEventListener('input', () => {
+        const token =
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InN5c3RlbWNyYWZ0LnBlQGdtYWlsLmNvbSJ9.yuNS5hRaC0hCwymX_PjXRoSZJWLNNBeOdlLRSUGlHGA';
+        const num_doc = Inputnum_doc.value;
+        if (num_doc.length === 8) {
+            fetch(`https://dniruc.apisperu.com/api/v1/dni/${num_doc}?token=${token}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success === false) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'No se pudo encontrar el DNI',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                        document.getElementById('datos_cliente').value = '';
+                    } else {
+                        document.getElementById('datos_cliente').value = data.nombres + ' ' + data
+                            .apellidoPaterno + ' ' + data.apellidoMaterno || ' ';
+                    }
+
+                })
+                .catch(error => {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: data.error,
+                        text: 'Hubo un problema con la solicitud',
                         showConfirmButton: false,
                         timer: 2000
                     });
-                    document.getElementById('drive_id').value = '';
-                    document.getElementById('datos_driver').value = '';
-                    return;
-                }
-                document.getElementById('drive_id').value = data.drive.id;
-                document.getElementById('datos_driver').value = data.drive.nombres + ' ' + data.drive
-                    .apellido_paterno + ' ' + data.drive.apellido_materno;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
+                });
+        } else {
+            document.getElementById('apellido_paterno').value = '';
+            document.getElementById('apellido_materno').value = '';
+            document.getElementById('nombres').value = '';
+        }
+    });
+
+    // function searchDrive() {
+    //     let n_documento = document.getElementById('n_documento').value;
+
+    //     fetch(`{{ route('buscar.Driver') }}?n_documento=${encodeURIComponent(n_documento)}`, {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             }
+    //         })
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 return response.json().then(err => {
+    //                     throw new Error('Error en la respuesta del servidor', err);
+    //                 });
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(data => {
+    //             if (data.error) {
+    //                 Swal.fire({
+    //                     icon: 'error',
+    //                     title: 'Error',
+    //                     text: data.error,
+    //                     showConfirmButton: false,
+    //                     timer: 2000
+    //                 });
+    //                 document.getElementById('drive_id').value = '';
+    //                 document.getElementById('datos_driver').value = '';
+    //                 return;
+    //             }
+    //             document.getElementById('drive_id').value = data.drive.id;
+    //             document.getElementById('datos_driver').value = data.drive.nombres + ' ' + data.drive
+    //                 .apellido_paterno + ' ' + data.drive.apellido_materno;
+    //         })
+    //         .catch(error => {
+    //             console.error('Error:', error);
+    //         });
+    // }
     formGarantine.addEventListener('submit', function(e) {
         e.preventDefault();
         let formdata = new FormData(formGarantine);
@@ -137,7 +177,8 @@
                         let errorMessages = '';
                         if (err.errors) {
                             for (let field in err.errors) {
-                                errorMessages += `${field}: ${err.errors[field].join(', ')}\n`;
+                                errorMessages +=
+                                    `${field}: ${err.errors[field].join(', ')}\n`;
                             }
                         } else if (err.error) {
                             errorMessages = err.error;

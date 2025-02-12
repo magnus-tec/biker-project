@@ -50,6 +50,9 @@
                             Nombres y Apellidos
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            DNI
+                        </th>
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Marca
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -85,7 +88,10 @@
                                 {{ $garantia->codigo }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                                {{ $garantia->drive->nombres . ' ' . $garantia->drive->apellido_paterno . ' ' . $garantia->drive->apellido_materno }}
+                                {{ $garantia->nombres_apellidos }}
+                            </td>
+                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ $garantia->nro_documento }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 {{ $garantia->marca }}

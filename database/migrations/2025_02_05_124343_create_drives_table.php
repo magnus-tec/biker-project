@@ -14,21 +14,20 @@ return new class extends Migration
     {
         Schema::create('drives', function (Blueprint $table) {
             $table->id();
-            $table->string('tipo_doc', 10);
             $table->string('codigo')->nullable();
             $table->string('nro_documento', 20)->unique()->nullable();
+            $table->string('tipo_doc')->nullable();
             $table->string('nombres', 100)->index()->nullable();
             $table->string('apellido_paterno', 100)->nullable();
             $table->string('apellido_materno', 100)->nullable();
-            $table->string('nacionalidad', 50);
+            $table->string('nacionalidad', 50)->nullable();
             $table->string('nro_licencia', 20)->nullable();
             $table->string('categoria_licencia', 20)->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->string('telefono', 20)->nullable();
             $table->string('correo', 100)->nullable();
             $table->string('foto', 255)->nullable();
-            $table->integer('numeroCodFi')->nullable();
-            $table->integer('numUnidad')->nullable();
+            $table->string('nro_motor')->unique()->nullable();
             $table->string('departamento', 50)->nullable();
             $table->string('provincia', 50)->nullable();
             $table->string('distrito', 50)->nullable();

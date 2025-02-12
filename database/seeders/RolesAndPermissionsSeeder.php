@@ -20,8 +20,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions' => ['ver-permisos', 'agregar-permisos', 'actualizar-permisos', 'eliminar-permisos'],
             'users' => ['ver-trabajadores', 'actualizar-trabajadores', 'eliminar-trabajadores', 'agregar-trabajadores', 'buscar-trabajadores'],
             'permisos-mecanicos' => ['ver-servicios'],
-            'permisos-secretaria' => ['actualizar-mecanicos', 'eliminar-mecanicos', 'agregar-mecanicos', 'buscar-mecanicos', 'ver-mecanicos', 'ver-vehiculos', 'actualizar-vehiculos', 'eliminar-vehiculos', 'agregar-vehiculos', 'buscar-vehiculos', 'registro-conductores', 'actualizar-conductores', 'eliminar-conductores', 'agregar-conductores', 'buscar-conductores', 'ver-conductores', 'filtrar-por-trabajador-servicios', 'filtrar-por-estado-servicios', 'agregar-servicios'],
-            'permisos-vendedor' => ['ver-garantias', 'actualizar-garantias', 'eliminar-garantias', 'agregar-garantias', 'buscar-garantias'],
+            'permisos-ventas' => ['actualizar-mecanicos', 'eliminar-mecanicos', 'agregar-mecanicos', 'buscar-mecanicos', 'ver-mecanicos', 'ver-vehiculos', 'actualizar-vehiculos', 'eliminar-vehiculos', 'agregar-vehiculos', 'buscar-vehiculos', 'registro-conductores', 'actualizar-conductores', 'eliminar-conductores', 'agregar-conductores', 'buscar-conductores', 'ver-conductores', 'filtrar-por-trabajador-servicios', 'filtrar-por-estado-servicios', 'agregar-servicios', 'ver-garantias', 'actualizar-garantias', 'eliminar-garantias', 'agregar-garantias', 'buscar-garantias'],
         ];
 
         foreach ($permissions as $category => $perms) {
@@ -32,8 +31,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $roles = [
             'administrador' => array_merge(...array_values($permissions)), // Admin tiene todos los permisos
             'mecanico' => array_merge($permissions['permisos-mecanicos']),
-            'secretaria' => array_merge($permissions['permisos-secretaria'], $permissions['permisos-mecanicos'], $permissions['permisos-vendedor']),
-            'vendedor' => array_merge($permissions['permisos-vendedor']),
+            'ventas' => array_merge($permissions['permisos-ventas'], $permissions['permisos-mecanicos']),
         ];
 
         foreach ($roles as $roleName => $rolePermissions) {

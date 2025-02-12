@@ -22,8 +22,6 @@ class Drive extends Model
         'telefono',
         'correo',
         'foto',
-        'numeroCodFi',
-        'numUnidad',
         'departamento',
         'provincia',
         'distrito',
@@ -36,7 +34,8 @@ class Drive extends Model
         'fecha_registro',
         'fecha_actualizacion',
         'status',
-        'codigo'
+        'codigo',
+        'nro_motor',
     ];
 
     public $timestamps = true;

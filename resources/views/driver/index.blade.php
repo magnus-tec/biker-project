@@ -1,7 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{-- Registro de Socios --}}
         </h2>
     </x-slot>
 
@@ -50,7 +49,7 @@
                             Nombres y Apellidos
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nº Documento
+                            Nº Motor
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
@@ -71,7 +70,7 @@
                             </td>
 
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $drive->nro_documento }}
+                                {{ $drive->nro_motor }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 <button type="button" id ="btn-{{ $drive->id }}"

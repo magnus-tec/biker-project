@@ -30,22 +30,17 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        // Mensajes personalizados de validación
         $messages = [
-            'tipo_doc.required' => 'El tipo de documento es obligatorio.',
-            'num_doc.required' => 'El número de documento es obligatorio.',
-            'nacionalidad.required' => 'La nacionalidad es obligatoria.',
             'num_doc.unique' => 'El número de documento ya está registrado.',
-
+            'nro_motor.unique' => 'El número de motor ya está registrado.',
         ];
         try {
             $request->validate([
-                'tipo_doc' => 'required|string',
-                'num_doc' => 'required|string|unique:drives,nro_documento',
-                'nacionalidad' => 'required|string',
+                'nro_motor' => 'unique:drives,nro_motor',
+                'num_doc' => 'nullable|unique:drives,nro_documento',
             ], $messages);
         } catch (ValidationValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 500);
+            return response()->json(['errors' => $e->errors()], 422);
         }
         try {
             $driver = Drive::create([
@@ -58,7 +53,7 @@ class CustomerController extends Controller
                 'apellido_materno' => $request->apellido_materno,
                 'nro_licencia' => $request->nro_licencia,
                 'categoria_licencia' => $request->licencia_categoria,
-                'numUnidad' => $request->nro_unidad,
+                'nro_motor' => $request->nro_motor,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'telefono' => $request->telefono,
                 'correo' => $request->correo,
@@ -72,10 +67,17 @@ class CustomerController extends Controller
                 'photo' => $request->photo,
                 'user_register' => auth()->user()->id,
             ]);
-            return response()->json([
-                'success' => true,
-                'message' => '¡El conductor ' . $driver->nombres . ' ha sido registrado con éxito!',
-            ]);
+            if ($driver) {
+                return response()->json([
+                    'success' => true,
+                    'message' => '¡El conductor ' . $driver->nombres . ' ha sido registrado con éxito!',
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al registrar el conductor',
+                ]);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

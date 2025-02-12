@@ -10,12 +10,12 @@
             <h5 class="text-lg font-semibold text-gray-800 mb-4">Detalle del problema</h5>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label for="num_doc" class="block text-sm font-medium text-gray-700">N° Placa</label>
+                    <label for="num_doc" class="block text-sm font-medium text-gray-700">N° motor</label>
                     <div class="flex mt-2">
-                        <input name="n_placa" id="n_placa" type="text" placeholder="Ingrese Documento"
+                        <input name="nro_motor" id="nro_motor" type="text" placeholder="Ingrese numero de motor"
                             class="block w-full  border border-gray-300 rounded-md shadow-sm">
                         <button id="buscarDrive" class="ml-2 py-2 px-4 bg-yellow-500 text-white rounded-md"
-                            type="button" onclick="searchDrivePorPlaca()">
+                            type="button" onclick="searchDrive()">
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
@@ -29,8 +29,16 @@
 
                     </div>
                 </div>
-                <input name="id_drive" id="id_drive" type="hidden"
-                    class="block w-full  border border-gray-300 rounded-md shadow-sm">
+                <div>
+                    <div class=" mt-2">
+                        <input name="drive_id" id="drive_id" type="hidden"
+                            class="block w-full  border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+
+                <div class="flex flex-col mt-2 col-span-2" id="listaVehiculos">
+
+                </div>
                 <input name="car_id" id="car_id" type="hidden"
                     class="block w-full  border border-gray-300 rounded-md shadow-sm">
             </div>
@@ -76,6 +84,8 @@
     </div>
 </x-app-layout>
 <script>
+    let contenedorListadoCar = '';
+
     function mostrarModal() {
         document.getElementById('modalMecanicos').classList.remove('hidden');
         fetch('{{ route('obtener.MecanicosDisponibles') }}')
@@ -108,10 +118,10 @@
         document.getElementById('datos_mecanico').value = datos;
     }
 
-    function searchDrivePorPlaca() {
-        let n_placa = document.getElementById('n_placa').value;
+    function searchDrive() {
+        let nro_motor = document.getElementById('nro_motor').value;
 
-        fetch(`{{ route('buscar.DriverPorPlaca') }}?n_placa=${encodeURIComponent(n_placa)}`, {
+        fetch(`{{ route('buscar.Vehiculo') }}?nro_motor=${encodeURIComponent(nro_motor)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -134,22 +144,62 @@
                         showConfirmButton: false,
                         timer: 2000
                     });
-                    document.getElementById('id_drive').value = '';
+                    document.getElementById('drive_id').value = '';
                     document.getElementById('datos_driver').value = '';
                     document.getElementById('car_id').value = '';
+                    contenedorListadoCar.innerHTML = '';
                     return;
                 }
-                document.getElementById('id_drive').value = data.drive.id;
-                document.getElementById('datos_driver').value = data.drive.nombres + ' ' + data.drive
-                    .apellido_paterno + ' ' + data.drive.apellido_materno;
-                document.getElementById('car_id').value = data.car.id;
 
-                //$("#datos_driver").val(data.nombres + ' ' + data.apellido_paterno + ' ' + data.apellido_materno);
+                if (data.drive.nombres === null || data.drive.apellido_paterno === null || data.drive
+                    .apellido_materno === null) {
+                    document.getElementById('datos_driver').value =
+                        'Este numero de motor no tiene nombres y apellidos';
+                    document.getElementById('drive_id').value = data.drive.id;
+                } else {
+                    document.getElementById('drive_id').value = data.drive.id;
+                    document.getElementById('datos_driver').value = data.drive.nombres + ' ' + data.drive
+                        .apellido_paterno + ' ' + data.drive.apellido_materno;
+                }
+
+                contenedorListadoCar = document.getElementById('listaVehiculos');
+                contenedorListadoCar.innerHTML = '';
+                data.car.forEach(car => {
+                    let row = `
+                        <div class="grid grid-cols-7 gap-2 border-b items-center p-2">
+                            <span class="text-left">Placa: ${car.placa ? car.placa : 'Sin placa'}</span>
+                            <span class="text-left">Marca: ${car.marca ? car.marca : 'Sin marca'}</span>
+                            <span class="text-left">Modelo: ${car.modelo ? car.modelo : 'Sin modelo'}</span>
+                            <span class="text-left">Color: ${car.color ? car.color : 'Sin color'}</span>
+                            <span class="text-left">Año: ${car.anio ? car.anio : 'Sin anio'}</span>
+                            <button onclick="seleccionarVehiculo(this, ${car.id}); cerrarModal()" 
+                                class="px-3 py-1 bg-blue-500 text-white rounded-lg" type="button">
+                                Asignar
+                            </button>
+                        </div>
+                    `;
+                    contenedorListadoCar.innerHTML += row;
+                });
             })
             .catch(error => {
                 console.error('Error:', error);
             });
     }
+    let selectedVehicleButton = null;
+
+    function seleccionarVehiculo(btn, id) {
+        if (selectedVehicleButton && selectedVehicleButton !== btn) {
+            selectedVehicleButton.classList.remove("bg-green-500");
+            selectedVehicleButton.classList.add("bg-blue-500");
+            selectedVehicleButton.innerText = "Asignar";
+        }
+        btn.classList.remove("bg-blue-500");
+        btn.classList.add("bg-green-500");
+        btn.innerText = "Asignado";
+        selectedVehicleButton = btn;
+        document.getElementById('car_id').value = id;
+    }
+
     let form = document.getElementById('formService');
     form.addEventListener('submit', function(e) {
         e.preventDefault();

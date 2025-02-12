@@ -25,25 +25,31 @@ class CarController extends Controller
     {
         return view('car.datos-vehiculo');
     }
-    public function searchDriverPorPlaca(Request $request)
+    public function searchBuscarVehiculo(Request $request)
     {
         try {
-
-            $placa = $request->n_placa;
-            $car = Car::where('placa', $placa)->first();
-            if ($car) {
-                $drive = Drive::where('id', $car->drives_id)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
-                return response()->json(
-                    [
-                        'drive' => $drive,
-                        'car' => $car
-                    ]
-                );
+            $nro_motor = $request->nro_motor;
+            $driver = Drive::where('nro_motor', $nro_motor)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
+            if ($driver) {
+                $car = Car::where('drives_id', $driver->id)->where('status', 1)->get();
+                if ($car) {
+                    return response()->json([
+                        'car' => $car,
+                        'drive' => $driver
+                    ]);
+                } else {
+                    return response()->json(['error' => 'No esta registrado el cliente con el numero de motor ingresado.']);
+                }
             } else {
-                return response()->json(['error' => 'No se encontro el vehiculo']);
+                return response()->json([
+                    'error' => 'No esta registrado el cliente con el numero de motor ingresado.'
+                ]);
             }
-        } catch (ValidationValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
         }
     }
     public function generateCode()
@@ -55,12 +61,12 @@ class CarController extends Controller
     public  function searchBuscarDriver(Request $request)
     {
         try {
-            $n_documento = $request->n_documento;
-            $drive = Drive::where('nro_documento', $n_documento)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
+            $nro_motor = $request->nro_motor;
+            $drive = Drive::where('nro_motor', $nro_motor)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
             if ($drive) {
                 return response()->json(['drive' => $drive]);
             } else {
-                return response()->json(['error' => 'El número de documento no se encuentra registrado.']);
+                return response()->json(['error' => 'El número de motor no se encuentra registrado.']);
             }
         } catch (ValidationValidationException $e) {
             return response()->json(['errors' => $e->errors()], 500);
@@ -76,7 +82,6 @@ class CarController extends Controller
             'marca.required' => 'La marca es obligatoria.',
             'modelo.required' => 'El modelo es obligatorio.',
             'n_placa.unique' => 'La placa ya está registrada.',
-            'n_placa.required' => 'La placa es obligatoria.',
             'nro_chasis.required' => 'El numero de chasis es obligatorio.',
             // 'nro_motor.unique' => 'El numero de motor ya esta registrado.',
             'drive_id.required' => 'El numero de documento es obligatorio.',
@@ -86,7 +91,7 @@ class CarController extends Controller
             $request->validate([
                 'marca' => 'required|string',
                 'modelo' => 'required|string',
-                'n_placa' => 'required|string|unique:cars,placa',
+                'n_placa' => 'nullable|string|unique:cars,placa',
                 // 'nro_motor' => 'unique:cars,nro_motor',
                 'drive_id' => 'required|string',
                 'nro_chasis' => 'required|string'
@@ -103,7 +108,6 @@ class CarController extends Controller
                 'anio' => $request->anio,
                 'condicion' => $request->tipo_condicion,
                 'nro_chasis' => $request->nro_chasis,
-                'nro_motor' => $request->nro_motor,
                 'fecha_soat' => $request->fecha_soat,
                 'fecha_seguro' => $request->fecha_seguro,
                 'color' => $request->color,

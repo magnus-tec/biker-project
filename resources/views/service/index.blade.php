@@ -70,7 +70,7 @@
                             Nº Codigo
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Conductor
+                            Nº Motor
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Placa
@@ -282,9 +282,9 @@
                             row.innerHTML = `
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${servicio.codigo}</td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                            ${servicio.drive.nombres} ${servicio.drive.apellido_paterno} ${servicio.drive.apellido_materno}
+                            ${servicio.drive.nro_motor}
                         </td>
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${servicio.car.placa}</td>
+                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${(servicio.car.placa)?servicio.car.placa:'Sin placa'}</td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             ${servicio.user.name} ${servicio.user.apellidos}
                         </td>

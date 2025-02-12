@@ -10,9 +10,9 @@
             <h5 class="text-lg font-semibold text-gray-800 mb-4">Datos del Vehículo</h5>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label for="num_doc" class="block text-sm font-medium text-gray-700">N° documento</label>
+                    <label for="num_doc" class="block text-sm font-medium text-gray-700">N° motor</label>
                     <div class="flex mt-2">
-                        <input name="n_documento" id="n_documento" type="text" placeholder="Ingrese Documento"
+                        <input name="nro_motor" id="nro_motor" type="text" placeholder="Ingrese numero de motor"
                             class="block w-full  border border-gray-300 rounded-md shadow-sm">
                         <button id="buscarDrive" class="ml-2 py-2 px-4 bg-yellow-500 text-white rounded-md"
                             type="button" onclick="searchDrive()">
@@ -81,11 +81,6 @@
                         class="block w-full p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
-                    <label for="nro_motor" class="block text-sm font-medium text-gray-700">Numero de motor</label>
-                    <input type="text" name="nro_motor"
-                        class="block w-full p-2 border border-gray-300 rounded-md shadow-sm">
-                </div>
-                <div>
                     <label for="nro_chasis" class="block text-sm font-medium text-gray-700">Numero de chasis</label>
                     <input type="text" name="nro_chasis"
                         class="block w-full p-2 border border-gray-300 rounded-md shadow-sm">
@@ -112,12 +107,12 @@
 </x-app-layout>
 <script>
     let formCar = document.getElementById('formCar');
-    let n_documento = document.getElementById('n_documento').value;
+    // let nro_motor = document.getElementById('nro_motor').value;
 
     function searchDrive() {
-        let n_documento = document.getElementById('n_documento').value;
+        let nro_motor = document.getElementById('nro_motor').value;
 
-        fetch(`{{ route('buscar.Driver') }}?n_documento=${encodeURIComponent(n_documento)}`, {
+        fetch(`{{ route('buscar.Driver') }}?nro_motor=${encodeURIComponent(nro_motor)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -143,10 +138,19 @@
                     document.getElementById('drive_id').value = '';
                     document.getElementById('datos_driver').value = '';
                     return;
+                } else {
+                    if (data.drive.nombres === null || data.drive.apellido_paterno === null || data
+                        .drive.apellido_materno === null) {
+                        document.getElementById('datos_driver').value =
+                            'Este numero de motor no tiene nombres y apellidos';
+                        document.getElementById('drive_id').value = data.drive.id;
+
+                        return;
+                    }
+                    document.getElementById('drive_id').value = data.drive.id;
+                    document.getElementById('datos_driver').value = data.drive.nombres + ' ' + data.drive
+                        .apellido_paterno + ' ' + data.drive.apellido_materno;
                 }
-                document.getElementById('drive_id').value = data.drive.id;
-                document.getElementById('datos_driver').value = data.drive.nombres + ' ' + data.drive
-                    .apellido_paterno + ' ' + data.drive.apellido_materno;
             })
             .catch(error => {
                 console.error('Error:', error);

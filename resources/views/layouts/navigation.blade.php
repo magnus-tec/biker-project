@@ -19,7 +19,7 @@
                     @can('ver-conductores')
                         <a href="{{ route('drives.index') }}"
                             class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Usuarios
+                            Clientes
                         </a>
                     @endcan
                     @can('ver-mecanicos')

@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('anio')->nullable();
             $table->string('condicion', 20)->nullable();
             $table->string('nro_chasis', 20)->nullable();
-            $table->string('nro_motor', 20)->nullable();
             $table->date('fecha_soat')->nullable();
             $table->date('fecha_seguro')->nullable();
             $table->string('color', 20)->nullable();

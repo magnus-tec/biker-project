@@ -69,7 +69,7 @@ class ServiceController extends Controller
             $servicios->where('status_service', $request->estado);
         }
 
-        if ($user->hasRole('administrador') || $user->hasRole('secretaria')) {
+        if ($user->hasRole('administrador') || $user->hasRole('ventas')) {
             if ($request->filled('mechanic') && $request->mechanic !== 'todos') {
                 $servicios->where('users_id', $request->mechanic);
             }
@@ -95,16 +95,16 @@ class ServiceController extends Controller
     {
         $messages = [
             'car_id.required' => 'Se quiere que se seleccione un vehiculo.',
-            'n_placa.required' => 'La placa es obligatoria.',
-            'id_drive.required' => 'se requiere DATOS del cliente',
+            'nro_motor.required' => 'La placa es obligatoria.',
+            'drive_id.required' => 'se requiere DATOS del cliente',
             'mechanics_id.required' => 'se requiere DATOS del Mecanico',
             'detalle.required' => 'se requiere detalles del servicio a realizar',
         ];
         try {
             $request->validate([
                 'car_id' => 'required|string',
-                'n_placa' => 'required|string',
-                'id_drive' => 'required|string|unique:cars,placa',
+                'nro_motor' => 'required|string',
+                'drive_id' => 'required|string|unique:cars,placa',
                 'mechanics_id' => 'required|string',
                 'detalle' => 'required|string',
             ], $messages);
@@ -113,7 +113,7 @@ class ServiceController extends Controller
         }
         try {
             $car = Service::create([
-                'drives_id' => $request->id_drive,
+                'drives_id' => $request->drive_id,
                 'cars_id' => $request->car_id,
                 'descripcion' => $request->detalle,
                 'user_register' => auth()->user()->id,

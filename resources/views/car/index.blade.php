@@ -53,6 +53,9 @@
                             placa
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Nº motor
+                        </th>
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Acciones
                         </th>
                     </tr>
@@ -69,6 +72,9 @@
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 {{ $car->placa }}
+                            </td>
+                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ $car->driver->nro_motor }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 <button type="button" id ="btn-{{ $car->id }}"

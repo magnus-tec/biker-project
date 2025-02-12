@@ -15,13 +15,15 @@ return new class extends Migration
         Schema::create('garantines', function (Blueprint $table) {
             $table->id();
             $table->string('codigo')->nullable();
-            $table->foreignId('drives_id')->nullable()->constrained('drives')->onDelete('cascade');
-            $table->string('marca', 50);
-            $table->string('modelo', 50);
-            $table->string('anio')->nullable();
-            $table->string('color', 20)->nullable();
-            $table->string('nro_chasis', 20)->nullable();
-            $table->string('nro_motor', 20)->nullable();
+            $table->string('nro_documento', 20)->nullable();
+            $table->string('nombres_apellidos', 100)->nullable();
+            $table->string('tipo_doc')->default('dni');
+            $table->string('marca', 50)->nullable();
+            $table->string('modelo', 50)->nullable();
+            $table->string('anio')->nullable()->nullable();
+            $table->string('color', 100)->nullable();
+            $table->string('nro_chasis', 100)->nullable();
+            $table->string('nro_motor', 100)->unique()->nullable();
             $table->unsignedBigInteger('user_register')->nullable();
             $table->foreign('user_register')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('user_update')->nullable();

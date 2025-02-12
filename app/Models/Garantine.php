@@ -13,7 +13,6 @@ class Garantine extends Model
 
     protected $fillable = [
         'codigo',
-        'drives_id',
         'marca',
         'modelo',
         'anio',
@@ -25,6 +24,9 @@ class Garantine extends Model
         'status',
         'fecha_registro',
         'fecha_actualizacion',
+        'nro_documento',
+        'nombres_apellidos',
+        'tipo_doc',
     ];
     protected $casts = [
         'fecha_registro' => 'datetime',
@@ -41,9 +43,5 @@ class Garantine extends Model
     public function userUpdated()
     {
         return $this->belongsTo(User::class, 'user_update');
-    }
-    public function drive()
-    {
-        return $this->belongsTo(Drive::class, 'drives_id');
     }
 }
