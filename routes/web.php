@@ -46,7 +46,8 @@ Route::group(
         Route::get('car/buscarPorPlaca', [App\Http\Controllers\CarController::class, 'searchDriverPorPlaca'])->name('buscar.DriverPorPlaca');
         Route::get('car/buscarDrive', [App\Http\Controllers\CarController::class, 'searchBuscarDriver'])->name('buscar.Driver');
         Route::get('car/buscarPornroMotor', [App\Http\Controllers\CarController::class, 'searchBuscarVehiculo'])->name('buscar.Vehiculo');
-
+        // PRODUCTOS
+        Route::resource('products', App\Http\Controllers\ProductController::class);
 
         //SERVICIOS
         Route::resource('services', App\Http\Controllers\ServiceController::class);

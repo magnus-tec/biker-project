@@ -20,7 +20,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions' => ['ver-permisos', 'agregar-permisos', 'actualizar-permisos', 'eliminar-permisos'],
             'users' => ['ver-trabajadores', 'actualizar-trabajadores', 'eliminar-trabajadores', 'agregar-trabajadores', 'buscar-trabajadores'],
             'permisos-mecanicos' => ['ver-servicios'],
-            'permisos-ventas' => ['actualizar-mecanicos', 'eliminar-mecanicos', 'agregar-mecanicos', 'buscar-mecanicos', 'ver-mecanicos', 'ver-vehiculos', 'actualizar-vehiculos', 'eliminar-vehiculos', 'agregar-vehiculos', 'buscar-vehiculos', 'registro-conductores', 'actualizar-conductores', 'eliminar-conductores', 'agregar-conductores', 'buscar-conductores', 'ver-conductores', 'filtrar-por-trabajador-servicios', 'filtrar-por-estado-servicios', 'agregar-servicios', 'ver-garantias', 'actualizar-garantias', 'eliminar-garantias', 'agregar-garantias', 'buscar-garantias'],
+            'permisos-ventas' => ['actualizar-mecanicos', 'eliminar-mecanicos', 'agregar-mecanicos', 'buscar-mecanicos', 'ver-mecanicos', 'ver-vehiculos', 'actualizar-vehiculos', 'eliminar-vehiculos', 'agregar-vehiculos', 'buscar-vehiculos', 'registro-conductores', 'actualizar-conductores', 'eliminar-conductores', 'agregar-conductores', 'buscar-conductores', 'ver-conductores', 'filtrar-por-trabajador-servicios', 'filtrar-por-estado-servicios', 'agregar-servicios', 'ver-garantias', 'actualizar-garantias', 'eliminar-garantias', 'agregar-garantias', 'buscar-garantias', 'ver-productos', 'agregar-productos', 'actualizar-productos', 'eliminar-productos', 'buscar-productos'],
         ];
 
         foreach ($permissions as $category => $perms) {

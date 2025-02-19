@@ -88,10 +88,22 @@
                                 </button>
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium">
-                                <a href="" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                <a href="{{ route('cars.edit', $car->id) }}"
+                                    class="text-indigo-600 hover:text-indigo-900 mr-3">
                                     Editar
                                 </a>
+
+                                <form action="{{ route('cars.destroy', $car->id) }}" method="POST"
+                                    style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900"
+                                        onclick="return confirm('¿Estás seguro de que deseas eliminar este vehiculo?');">
+                                        Eliminar
+                                    </button>
+                                </form>
                             </td>
+
                         </tr>
                     @empty
                         <tr>

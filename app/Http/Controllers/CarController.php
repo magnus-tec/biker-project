@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Car;
 use App\Models\Drive;
+use COM;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException as ValidationValidationException;
 
@@ -143,7 +144,16 @@ class CarController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        try {
+            $car = Car::findOrFail($id);
+            return view('car.edit', compact('car'));
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+        return view('car.edit');
     }
 
     /**
@@ -151,7 +161,52 @@ class CarController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Mensajes personalizados de validación
+        $messages = [
+            'marca.required' => 'La marca es obligatoria.',
+            'modelo.required' => 'El modelo es obligatorio.',
+            'n_placa.unique' => 'La placa ya está registrada.',
+            'nro_chasis.required' => 'El número de chasis es obligatorio.',
+            'drive_id.required' => 'El número de documento es obligatorio.',
+        ];
+
+        try {
+            $request->validate([
+                'marca' => 'required|string',
+                'modelo' => 'required|string',
+                'n_placa' => 'nullable|string|unique:cars,placa,' . $id,
+                'drive_id' => 'required|string',
+                'nro_chasis' => 'required|string'
+            ], $messages);
+        } catch (ValidationValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        }
+
+        try {
+            $car = Car::findOrFail($id);
+            $car->update([
+                'placa' => $request->n_placa,
+                'marca' => $request->marca,
+                'modelo' => $request->modelo,
+                'anio' => $request->anio,
+                'condicion' => $request->tipo_condicion,
+                'nro_chasis' => $request->nro_chasis,
+                'fecha_soat' => $request->fecha_soat,
+                'fecha_seguro' => $request->fecha_seguro,
+                'color' => $request->color,
+                'drives_id' => $request->drive_id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => '¡El vehículo con la placa ' . $car->placa . ' ha sido actualizado con éxito!',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -159,6 +214,13 @@ class CarController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $car = Car::findOrFail($id);
+            $car->status = 0;
+            $car->save();
+            return redirect()->route('cars.index')->with('success', 'Vehiculo eliminado correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->route('cars.index')->with('error', 'Error al eliminar el Vehiculo.');
+        }
     }
 }

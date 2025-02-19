@@ -83,12 +83,14 @@
                                     @endif
                                 </button>
                             </td>
-
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium">
-                                <a href="" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                    Editar
-                                </a>
-                            </td>
+                            @can('actualizar-conductores')
+                                <td class="px-3 py-1 whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ route('drives.edit', $drive->id) }}"
+                                        class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                        Editar
+                                    </a>
+                                </td>
+                            @endcan
                         </tr>
                     @empty
                         <tr>
