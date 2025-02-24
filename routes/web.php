@@ -48,6 +48,8 @@ Route::group(
         Route::get('car/buscarPornroMotor', [App\Http\Controllers\CarController::class, 'searchBuscarVehiculo'])->name('buscar.Vehiculo');
         // PRODUCTOS
         Route::resource('products', App\Http\Controllers\ProductController::class);
+        Route::get('product/search', [App\Http\Controllers\ProductController::class, 'search'])->name('products.search');
+        Route::get('product/export', [App\Http\Controllers\ProductController::class, 'export'])->name('products.export');
 
         //SERVICIOS
         Route::resource('services', App\Http\Controllers\ServiceController::class);

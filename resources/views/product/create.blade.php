@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="w-3/4 mx-auto py-8 my-6 shadow-lg p-5 rounded-lg border border-gray-300">
-        <form id="formProducts">
+        <form id="formProducts" enctype="multipart/form-data">
             @csrf
             <h5 class="text-lg font-semibold mb-4">Datos del Producto</h5>
 
@@ -16,6 +16,12 @@
                     <input type="text" name="description" id="description"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
+                <div>
+                    <label for="image" class="block text-sm font-medium text-gray-700">Imagen (QR tamaño)</label>
+                    <input type="file" name="image" id="image" accept="image/*"
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+
                 <div>
                     <label for="model" class="block text-sm font-medium text-gray-700">Modelo</label>
                     <input type="text" name="model" id="model"

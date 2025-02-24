@@ -10,6 +10,10 @@ use App\Models\Unit;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException as ValidationValidationException;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
 
 class ProductController extends Controller
 {
@@ -21,6 +25,219 @@ class ProductController extends Controller
         $products = Product::where('status', 1)->with('brand', 'unit', 'warehouse')->get();
         return view('product.index', compact('products'));
     }
+    // public function export(Request $request)
+    // {
+    //     $filter = $request->get('filter', 'estado');
+    //     $query = Product::query()->with('brand', 'unit', 'warehouse');
+    //     if ($filter === 'productos') {
+    //         $query->where('status', 1);
+    //     } elseif ($filter === 'stock_minimo') {
+    //         $query->whereColumn('stock', '<=', 'stock_min');
+    //     } elseif ($filter === 'precio') {
+    //         $query->orderBy('price');
+    //     }
+    //     return Excel::download(new class($query) implements FromQuery, WithHeadings, WithMapping {
+    //         protected $query;
+
+    //         public function __construct($query)
+    //         {
+    //             $this->query = $query;
+    //         }
+
+    //         public function query()
+    //         {
+    //             return $this->query->select('id', 'code', 'description', 'model', 'location', 'warehouse_id', 'brand_id', 'unit_id', 'status');
+    //         }
+
+    //         public function headings(): array
+    //         {
+    //             return [
+    //                 'ID',
+    //                 'Código',
+    //                 'Descripción',
+    //                 'Modelo',
+    //                 'Localización',
+    //                 'Almacén',
+    //                 'Marca',
+    //                 'Unidad',
+    //                 'Estado',
+    //             ];
+    //         }
+
+    //         public function map($product): array
+    //         {
+    //             return [
+    //                 $product->id,
+    //                 $product->code,
+    //                 $product->description,
+    //                 $product->model,
+    //                 $product->location,
+    //                 $product->warehouse->name ?? '',
+    //                 $product->brand->name ?? '',
+    //                 $product->unit->name ?? '',
+    //                 $product->status,
+    //             ];
+    //         }
+    //     }, 'products.xlsx');
+    // }
+    public function export(Request $request)
+    {
+        // Obtén el parámetro 'filter' enviado desde la vista
+        $filter = $request->get('filter', 'productos');
+
+        if ($filter === 'productos') {
+            // Opción "Exportar por Productos": Exporta todos los productos (con relaciones)
+            $query = Product::query()->with('brand', 'unit', 'warehouse');
+
+            return Excel::download(new class($query) implements FromQuery, WithHeadings, WithMapping {
+                protected $query;
+
+                public function __construct($query)
+                {
+                    $this->query = $query;
+                }
+
+                public function query()
+                {
+                    // Selecciona los campos de la tabla products
+                    return $this->query->select(
+                        'id',
+                        'code',
+                        'description',
+                        'model',
+                        'location',
+                        'warehouse_id',
+                        'brand_id',
+                        'unit_id',
+                        'status'
+                    );
+                }
+
+                public function headings(): array
+                {
+                    return [
+                        'ID',
+                        'Código',
+                        'Descripción',
+                        'Modelo',
+                        'Localización',
+                        'Almacén',
+                        'Marca',
+                        'Unidad',
+                        'Estado',
+                    ];
+                }
+
+                public function map($product): array
+                {
+                    return [
+                        $product->id,
+                        $product->code,
+                        $product->description,
+                        $product->model,
+                        $product->location,
+                        $product->warehouse->name ?? '',
+                        $product->brand->name ?? '',
+                        $product->unit->name ?? '',
+                        $product->status,
+                    ];
+                }
+            }, 'productos.xlsx');
+        } elseif ($filter === 'stock_minimo') {
+            // Opción "Exportar por Stock Mínimo": Exporta solo aquellos stocks donde la cantidad es igual al stock mínimo
+            // Se asume que existe un modelo Stock con la relación 'product'
+            $query = Stock::query()->with('product')->whereColumn('quantity', 'minimum_stock');
+
+            return Excel::download(new class($query) implements FromQuery, WithHeadings, WithMapping {
+                protected $query;
+
+                public function __construct($query)
+                {
+                    $this->query = $query;
+                }
+
+                public function query()
+                {
+                    return $this->query->select(
+                        'product_id',
+                        'quantity',
+                        'minimum_stock'
+                    );
+                }
+
+                public function headings(): array
+                {
+                    return [
+                        'Producto',
+                        'Cantidad',
+                        'Stock Mínimo',
+                    ];
+                }
+
+                public function map($stock): array
+                {
+                    return [
+                        $stock->product->description ?? '', // o product code, según lo que necesites
+                        $stock->quantity,
+                        $stock->minimum_stock,
+                    ];
+                }
+            }, 'stock_minimo.xlsx');
+        } elseif (
+            $filter === 'precio'
+        ) {
+            $query = ProductPrice::with('product')
+                ->whereHas('product', function ($q) {
+                    $q->where('status', 1);
+                });
+
+            return Excel::download(new class($query) implements FromQuery, WithHeadings, WithMapping {
+                protected $query;
+                public function __construct($query)
+                {
+                    $this->query = $query;
+                }
+                public function query()
+                {
+                    // Seleccionamos los campos de la tabla product_prices
+                    return $this->query->select('id', 'product_id', 'price');
+                }
+                public function headings(): array
+                {
+                    return [
+                        'Producto',
+                        'Precio',
+                    ];
+                }
+                public function map($row): array
+                {
+                    return [
+                        // Utiliza la relación definida en ProductPrice para obtener la descripción del producto
+                        $row->product->description ?? '',
+                        $row->price,
+                    ];
+                }
+            }, 'precio.xlsx');
+        }
+    }
+    public function search(Request $request)
+    {
+        $buscar = $request->buscar;
+        $query = Product::where('status', 1)->with('brand', 'unit', 'warehouse');
+
+        if (!empty($buscar)) {
+            $query->where(function ($q) use ($buscar) {
+                $q->where('description', 'like', "%{$buscar}%")
+                    ->orWhere('code', 'like', "%{$buscar}%");
+            });
+        }
+
+        $products = $query->get();
+
+        // Retornamos los productos en formato JSON
+        return response()->json($products);
+    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -55,7 +272,14 @@ class ProductController extends Controller
         $validated['code'] = $this->generateCode();
 
         $product = Product::create($validated);
-
+        // Manejo de la imagen
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('images/products'), $imageName);
+            $product->bar_code = 'images/products/' . $imageName;
+            $product->save();
+        }
         if ($product) {
             $prices = $validated['prices'] ?? [];
             $priceData = [];
@@ -135,6 +359,24 @@ class ProductController extends Controller
 
             // Buscar el producto existente
             $product = Product::findOrFail($id);
+
+            if ($request->hasFile('bar_code_update')) {
+                // Eliminar imagen anterior si existe
+                if (!empty($product->bar_code) && file_exists(public_path($product->bar_code))) {
+                    unlink(public_path($product->bar_code));
+                }
+
+                // Guardar la nueva imagen
+                $image = $request->file('bar_code_update');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('images/products'), $imageName);
+                $product->bar_code = 'images/products/' . $imageName;
+            }
+
+            // Si se envía un nuevo código de barras, actualizarlo
+            if ($request->filled('bar_code_update')) {
+                $product->bar_code = $request->bar_code_update;
+            }
 
             // Actualizar los datos del producto
             $product->update($validated);

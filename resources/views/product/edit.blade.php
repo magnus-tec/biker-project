@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="w-3/4 mx-auto py-8 my-6 shadow-lg p-5 rounded-lg border border-gray-300">
-        <form id="formProducts">
+        <form id="formProducts" enctype="multipart/form-data">
             @csrf
             <h5 class="text-lg font-semibold mb-4">Datos del Producto</h5>
 
@@ -16,6 +16,29 @@
                     <input type="text" name="description" id="description" value="{{ $product->description }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
+                <div>
+                    <label for="image" class="block text-sm font-medium text-gray-700">Imagen (QR tamaño)</label>
+
+                    @if ($product->bar_code)
+                        <div class="mb-2">
+                            <img src="{{ asset($product->bar_code) }}" alt="Producto" id="current-image"
+                                class="w-16 h-16 object-contain border rounded-lg" name="bar_code_edit">
+                            <img id="preview-image" class="w-16 h-16 object-contain border rounded-lg mt-2"
+                                style="display: none;">
+
+                            <button type="button" id="remove-image"
+                                class="mt-2 px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">
+                                Eliminar Imagen
+                            </button>
+                        </div>
+                    @endif
+
+                    <input type="file" name="bar_code_update" id="image" accept="image/*"
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+
+                <input type="hidden" name="remove_image" id="remove_image" value="0">
+
                 <div>
                     <label for="model" class="block text-sm font-medium text-gray-700">Modelo</label>
                     <input type="text" name="model" id="model" value="{{ $product->model }}"
@@ -102,6 +125,42 @@
 </x-app-layout>
 
 <script>
+    document.getElementById('image').addEventListener('change', function(event) {
+        let file = event.target.files[0];
+        let previewImage = document.getElementById('preview-image');
+
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('remove-image')?.addEventListener('click', function() {
+        let previewImage = document.getElementById('preview-image');
+        let currentImage = document.getElementById('current-image'); // Identifica la imagen existente
+        let imageInput = document.getElementById('image');
+        let removeImageInput = document.getElementById('remove_image');
+
+        // Ocultar la imagen actual y permitir subir otra
+        if (currentImage) {
+            currentImage.style.display = 'none';
+        }
+
+        // Limpiar cualquier imagen previa cargada
+        previewImage.style.display = 'none';
+
+        // Restablecer el input de imagen
+        imageInput.value = '';
+
+        // Indicar que la imagen anterior no debe mostrarse más
+        removeImageInput.value = '1';
+    });
+
+
     document.getElementById('formProducts').addEventListener('submit', async function(e) {
         e.preventDefault();
         let formData = new FormData(this);
