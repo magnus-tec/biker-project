@@ -6,15 +6,18 @@ use App\Models\Product;
 use App\Models\Warehouse;
 use App\Models\Brand;
 use App\Models\Unit;
-use Maatwebsite\Excel\Concerns\ToModel;
+use App\Models\ProductPrice;
+use App\Models\Stock;
+use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Row;
 
-class ProductsImport implements ToModel, WithStartRow, WithValidation, SkipsOnFailure, WithBatchInserts, WithChunkReading
+class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOnFailure, WithBatchInserts, WithChunkReading
 {
     use SkipsFailures;
 
@@ -27,35 +30,81 @@ class ProductsImport implements ToModel, WithStartRow, WithValidation, SkipsOnFa
     }
 
     /**
-     * Comienza en la fila 2 (si la fila 1 es el encabezado)
+     * Comienza en la fila 2 (si la fila 1 es el encabezado).
+     * Ajusta este valor si incluyes filas de ejemplo.
      */
     public function startRow(): int
     {
         return 2;
     }
 
-    public function model(array $row)
+    /**
+     * Se espera que el orden de columnas sea:
+     * 0 => Código
+     * 1 => Descripción
+     * 2 => Modelo
+     * 3 => Localización
+     * 4 => Almacén
+     * 5 => Marca
+     * 6 => Unidad
+     * 7 => Precio Compra
+     * 8 => Precio Mayorista
+     * 9 => Precio Sucursal A
+     * 10 => Precio Sucursal B
+     * 11 => Cantidad en Stock
+     * 12 => Stock Mínimo
+     */
+    public function onRow(Row $row)
     {
-        return new Product([
-            // Orden: 0 => Código, 1 => Descripción, 2 => Modelo, 3 => Localización, 4 => Almacén, 5 => Marca, 6 => Unidad
-            'code_sku'      => $row[0],
-            'description'   => $row[1],
-            'model'         => $row[2],
-            'location'      => $row[3],
-            'warehouse_id'  => Warehouse::where('name', $row[4])->value('id'),
-            'brand_id'      => Brand::where('name', $row[5])->value('id'),
-            'unit_id'       => Unit::where('name', $row[6])->value('id'),
-            // Genera el código de producto
-            'code'          => Product::generateCode(), // Asegúrate de que generateCode() sea accesible (por ejemplo, estática)
-            // Asigna el usuario que importa
+        $rowData = $row->toArray();
+
+        // Crear el producto en la tabla products
+        $product = Product::create([
+            'code_sku'      => $rowData[0],
+            'description'   => $rowData[1],
+            'model'         => $rowData[2],
+            'location'      => $rowData[3],
+            'warehouse_id'  => Warehouse::where('name', $rowData[4])->value('id'),
+            'brand_id'      => Brand::where('name', $rowData[5])->value('id'),
+            'unit_id'       => Unit::where('name', $rowData[6])->value('id'),
+            // Se asume que tienes definido el método generateCode() en el modelo Product
+            'code'          => Product::generateCode(),
             'user_register' => $this->userId,
-            'status'        => '1',
+            'status'        => 1,
         ]);
+
+        // Insertar precios (si se proporcionan)
+        $priceTypes = [
+            'buy'       => 7,  // Precio Compra
+            'wholesale' => 8,  // Precio Mayorista
+            'sucursalA' => 9,  // Precio Sucursal A
+            'sucursalB' => 10, // Precio Sucursal B
+        ];
+
+        foreach ($priceTypes as $type => $index) {
+            if (isset($rowData[$index]) && $rowData[$index] !== '') {
+                ProductPrice::create([
+                    'product_id' => $product->id,
+                    'type'       => $type,
+                    'price'      => $rowData[$index],
+                ]);
+            }
+        }
+
+        // Insertar stock (si se proporcionan datos)
+        if ((isset($rowData[11]) && $rowData[11] !== '') || (isset($rowData[12]) && $rowData[12] !== '')) {
+            Stock::create([
+                'product_id'    => $product->id,
+                'quantity'      => isset($rowData[11]) ? $rowData[11] : 0,
+                'minimum_stock' => isset($rowData[12]) ? $rowData[12] : 0,
+            ]);
+        }
     }
 
     public function rules(): array
     {
         return [
+            // Validación de las columnas obligatorias
             '0' => 'required|unique:products,code_sku',
             '4' => 'required|exists:warehouses,name',
             '5' => 'required|exists:brands,name',
@@ -82,5 +131,11 @@ class ProductsImport implements ToModel, WithStartRow, WithValidation, SkipsOnFa
     public function chunkSize(): int
     {
         return 100;
+    }
+    public static function generateCode()
+    {
+        $lastCodigo = Product::max('code') ?? '0000000';
+        $nextCodigo = intval($lastCodigo) + 1;
+        return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
     }
 }

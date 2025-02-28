@@ -314,14 +314,14 @@
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                             ${product.bar_code 
                                                 ? `<img src="${product.bar_code}" alt="Producto" class="w-16 h-16 object-contain border rounded-lg cursor-pointer product-image">
-                                                                                                                                                                                                                                                                                    ` 
+                                                                                                                                                                                                                                                                                        ` 
                                                 : '<span class="text-gray-500">Sin imagen</span>'}
                                         </td>
                                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             ${product.images?.length > 0 
                                 ? `<img src="${product.images[0].image_path}" alt="Producto"
-                                                                                                                                class="w-20 h-20 object-cover rounded-lg cursor-pointer"
-                                                                                                                                onclick="openModal(${product.id})">`
+                                                                                                                                    class="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                                                                                                                                    onclick="openModal(${product.id})">`
                                 : '<span class="text-gray-400">No Image</span>'}
                         </td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.description ?? ''}</td>
@@ -396,6 +396,7 @@
                     .then(response => response.json())
                     .then(data => {
                         alert(data.message);
+                        location.reload();
                         importModal.classList.add('hidden');
                     })
                     .catch(error => console.error('Error:', error));
