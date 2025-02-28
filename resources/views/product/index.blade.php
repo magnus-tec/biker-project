@@ -3,7 +3,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight"></h2>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="max-w-7xl mx-auto px-4 py-12 text-xs">
         <!-- Encabezado y búsqueda -->
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-800">Lista de Productos</h2>
@@ -26,9 +26,13 @@
                 </select>
                 <button id="btnExport"
                     class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg">
-                    Exportar Excel
+                    Exportar
                 </button>
             </div>
+            <button id="btnOpenImportModal"
+                class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg">
+                Importar
+            </button>
 
             @can('agregar-productos')
                 <a href="{{ route('products.create') }}"
@@ -52,7 +56,7 @@
         @endif
 
         <!-- Tabla de registros -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-5">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-5 ">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -61,6 +65,9 @@
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Código de Barras
+                        </th>
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Imagenes del Producto
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Descripción
@@ -93,7 +100,7 @@
                     @forelse($products as $product)
                         <tr>
                             <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                                {{ $product->code }}
+                                {{ $product->code_sku }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 @if ($product->bar_code)
@@ -103,25 +110,35 @@
                                     <span class="text-gray-500">Sin imagen</span>
                                 @endif
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                                @if ($product->images->isNotEmpty())
+                                    <img src="{{ asset($product->images->first()->image_path) }}" alt="Producto"
+                                        class="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                                        onclick="openModal({{ $product->id }})">
+                                @else
+                                    <span class="text-gray-400">No Image</span>
+                                @endif
+                            </td>
+
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
                                 {{ $product->description }}
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
                                 {{ $product->model }}
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
                                 {{ $product->location }}
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
                                 {{ $product->warehouse->name }}
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
                                 {{ $product->brand->name }}
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
                                 {{ $product->unit->name }}
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
                                 <button type="button" id="btn-{{ $product->id }}"
                                     class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md {{ $product->status == 0 ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700' }}"
                                     onclick="confirmDelete({{ $product->id }}, '{{ $product->status == 0 ? '¿Está seguro de desactivar este registro?' : '¿Está seguro de activar este registro?' }}')">
@@ -132,7 +149,7 @@
                                     @endif
                                 </button>
                             </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium">
+                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium">
                                 <a href="{{ route('products.edit', $product->id) }}"
                                     class="text-indigo-600 hover:text-indigo-900 mr-3">
                                     Editar
@@ -167,9 +184,115 @@
             <img id="modalImage" src="" alt="Imagen Ampliada" class="max-w-sm max-h-screen rounded-lg">
         </div>
     </div>
+    <!-- Modal -->
+    <div id="imagesModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-4 rounded-lg w-11/12 md:w-3/4 lg:w-1/2 relative">
+            <!-- Botón de cierre -->
+            <button class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl"
+                onclick="closeModalImages()">
+                &times; </button>
+            <!-- Swiper Container -->
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper" id="swiperWrapper"></div>
+                <!-- Botones de navegación -->
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de Importación -->
+    <div id="importModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-lg font-semibold mb-4">Importar Datos</h2>
+
+            <!-- Enlace para descargar la plantilla -->
+            <a href="{{ route('plantilla.descargar') }}" class="text-blue-500 hover:underline mb-4 block">
+                📥 Descargar Plantilla
+            </a>
+
+            <!-- Formulario de subida de archivo -->
+            <form id="importForm" enctype="multipart/form-data">
+                <input type="file" id="importFile" name="file" required>
+                <button type="submit">Importar</button>
+            </form>
+
+
+            <!-- Botón para cerrar -->
+            <button id="btnCloseImportModal"
+                class="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg w-full">
+                Cancelar
+            </button>
+        </div>
+    </div>
     <!-- Script usando Fetch para actualizar la tabla -->
     <script>
+        function openModal(productId) {
+            console.log('productId', productId);
+
+            // Obtener imágenes con AJAX
+            fetch(`/productos/${productId}/imagenes`)
+                .then(response => response.json())
+                .then(images => {
+                    console.log('images', images);
+
+                    let swiperWrapper = document.getElementById("swiperWrapper");
+
+                    // Asegurar que images no esté vacío
+                    if (!images || images.length === 0) {
+                        console.error("No se encontraron imágenes para este producto.");
+                        return;
+                    }
+
+                    // Limpiar el contenido previo
+                    let html = "";
+
+                    images.forEach(img => {
+                        if (img.image_path) {
+                            html += `
+                    <div class="swiper-slide p-4 text-center">
+                        <img src="${img.image_path}" class="w-auto h-auto object-cover rounded-lg">
+                    </div>`;
+                        } else {
+                            console.warn("Imagen sin path válido:", img);
+                        }
+                    });
+
+                    swiperWrapper.innerHTML = html;
+
+                    // Mostrar el modal
+                    document.getElementById("imagesModal").classList.remove("hidden");
+
+                    // Inicializar Swiper después de asegurarse de que las imágenes están en el DOM
+                    setTimeout(() => {
+                        new Swiper(".mySwiper", {
+                            loop: true,
+                            navigation: {
+                                nextEl: ".swiper-button-next",
+                                prevEl: ".swiper-button-prev",
+                            },
+                        });
+                    }, 100);
+                })
+                .catch(error => console.error("Error obteniendo imágenes:", error));
+        }
+
+        function closeModalImages() {
+            document.getElementById("imagesModal").classList.add("hidden");
+        }
         document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar Swiper
+            new Swiper(".mySwiper", {
+                loop: true,
+                navigation: {
+                    nextEl: ".swiper-button-next",
+                    prevEl: ".swiper-button-prev",
+                },
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false
+                },
+                effect: "slide",
+            });
             const btnBuscar = document.getElementById('btnBuscar');
             const inputBuscar = document.getElementById('buscar');
             const tableBody = document.getElementById('productsTableBody');
@@ -190,11 +313,20 @@
                                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${product.code}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                             ${product.bar_code 
-                                                ? `<img src="{{ asset($product->bar_code) }}" alt="Producto" class="w-16 h-16 object-contain border rounded-lg cursor-pointer product-image">
-                            ` 
+                                                ? `<img src="${product.bar_code}" alt="Producto" class="w-16 h-16 object-contain border rounded-lg cursor-pointer product-image">
+                                                                                                                                                                                                                                                                                    ` 
                                                 : '<span class="text-gray-500">Sin imagen</span>'}
                                         </td>
+                                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                            ${product.images?.length > 0 
+                                ? `<img src="${product.images[0].image_path}" alt="Producto"
+                                                                                                                                class="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                                                                                                                                onclick="openModal(${product.id})">`
+                                : '<span class="text-gray-400">No Image</span>'}
+                        </td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.description ?? ''}</td>
+                           
+
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.model ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.location ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.warehouse?.name ?? ''}</td>
@@ -233,6 +365,42 @@
                     })
                     .catch(error => console.error('Error en la búsqueda:', error));
             });
+            // fin de swiper
+
+            // Importar productos
+            const btnOpenImportModal = document.getElementById('btnOpenImportModal');
+            const btnCloseImportModal = document.getElementById('btnCloseImportModal');
+            const importModal = document.getElementById('importModal');
+            const importForm = document.getElementById('importForm');
+            const importFile = document.getElementById('importFile');
+            btnOpenImportModal.addEventListener('click', () => {
+                importModal.classList.remove('hidden');
+            });
+            btnCloseImportModal.addEventListener('click', () => {
+                importModal.classList.add('hidden');
+            });
+
+            importForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                let formData = new FormData();
+                formData.append('importFile', importFile.files[0]);
+
+                fetch("{{ route('products.import') }}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        importModal.classList.add('hidden');
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+            //fin importar
         });
         // Exportación: redirecciona a la ruta de exportación con el filtro seleccionado
         const btnExport = document.getElementById('btnExport');
@@ -241,10 +409,10 @@
         btnExport.addEventListener('click', (e) => {
             e.preventDefault();
             let filter = exportFilter.value;
-            // Redirige a la ruta de exportación con el parámetro filter
             window.location.href = `{{ route('products.export') }}?filter=${encodeURIComponent(filter)}`;
         });
-        // Función para abrir el modal con la imagen clickeada
+
+        // Función para abrir el modal con el QR del producto
         function openImageModal(src) {
             const modal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
@@ -256,17 +424,14 @@
                 openImageModal(image.src);
             });
         });
-
-        // Cerrar el modal al hacer click en el botón de cerrar
         document.getElementById('closeModal').addEventListener('click', () => {
             document.getElementById('imageModal').classList.add('hidden');
         });
-
-        // Opcional: Cerrar el modal al hacer click fuera de la imagen
         document.getElementById('imageModal').addEventListener('click', (e) => {
             if (e.target.id === 'imageModal') {
                 e.target.classList.add('hidden');
             }
         });
+        //FIN QR PRODUCTO
     </script>
 </x-app-layout>

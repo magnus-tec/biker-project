@@ -5,23 +5,36 @@
         </h2>
     </x-slot>
 
-    <div class="w-3/4 mx-auto py-8 my-6 shadow-lg p-5 rounded-lg border border-gray-300">
+    <div class="w-3/4 mx-auto py-8 my-6 shadow-lg p-5 rounded-lg border border-gray-300 text-xs">
         <form id="formProducts" enctype="multipart/form-data">
             @csrf
             <h5 class="text-lg font-semibold mb-4">Datos del Producto</h5>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                <div>
+                    <label for="code_sku" class="block text-sm font-medium text-gray-700">Codigo</label>
+                    <input type="text" name="code_sku" id="code_sku"
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
                 <div>
                     <label for="description" class="block text-sm font-medium text-gray-700">Descripción</label>
                     <input type="text" name="description" id="description"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
-                    <label for="image" class="block text-sm font-medium text-gray-700">Imagen (QR tamaño)</label>
+                    <label for="image" class="block text-sm font-medium text-gray-700">QR tamaño</label>
                     <input type="file" name="image" id="image" accept="image/*"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
-                </div>
+                    <div id="previewImage" class="mt-2"></div>
 
+                </div>
+                <div>
+                    <label for="images" class="block text-sm font-medium text-gray-700">Imágenes del Producto</label>
+                    <input type="file" name="images[]" id="images" accept="image/*" multiple
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
+                    <div id="previewImages" class="mt-2 flex flex-wrap gap-2"></div>
+
+                </div>
                 <div>
                     <label for="model" class="block text-sm font-medium text-gray-700">Modelo</label>
                     <input type="text" name="model" id="model"
@@ -78,25 +91,25 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
                 <div>
                     <label for="prices[buy]" class="block text-sm font-medium text-gray-700">Precio de Compra</label>
-                    <input type="number" name="prices[buy]" id="prices_buy"
+                    <input type="decimal" name="prices[buy]" id="prices_buy"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
                     <label for="prices[wholesale]" class="block text-sm font-medium text-gray-700">Precio
                         Mayorista</label>
-                    <input type="number" name="prices[wholesale]" id="prices_wholesale"
+                    <input type="decimal" name="prices[wholesale]" id="prices_wholesale"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
                     <label for="prices[sucursalA]" class="block text-sm font-medium text-gray-700">Precio Sucursal
                         A</label>
-                    <input type="number" name="prices[sucursalA]" id="prices_sucursal_a"
+                    <input type="decimal" name="prices[sucursalA]" id="prices_sucursal_a"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
                     <label for="prices[sucursalB]" class="block text-sm font-medium text-gray-700">Precio Sucursal
                         B</label>
-                    <input type="number" name="prices[sucursalB]" id="prices_sucursal_b"
+                    <input type="decimal" name="prices[sucursalB]" id="prices_sucursal_b"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
             </div>
@@ -114,6 +127,48 @@
 </x-app-layout>
 
 <script>
+    // Previsualizar imagen principal (QR tamaño)
+    document.getElementById('image').addEventListener('change', function(e) {
+        const previewContainer = document.getElementById('previewImage');
+        previewContainer.innerHTML = ""; // Limpiar previsualizaciones previas
+        const file = this.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = "Previsualización de QR";
+                img.className =
+                    "w-32 h-32 object-cover border rounded-lg"; // Ajusta las clases según necesites
+                previewContainer.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Previsualizar imágenes múltiples
+    document.getElementById('images').addEventListener('change', function(e) {
+        const previewContainer = document.getElementById('previewImages');
+        previewContainer.innerHTML = ""; // Limpiar previsualizaciones previas
+        const files = this.files;
+
+        if (files.length > 0) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = "Previsualización de imagen";
+                    img.className =
+                        "w-20 h-20 object-cover border rounded-lg"; // Ajusta según tus necesidades
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+    });
+
     document.getElementById('formProducts').addEventListener('submit', function(e) {
         e.preventDefault();
         let formData = new FormData(this);
@@ -122,7 +177,43 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('response', response);
+                if (!response.ok) {
+                    console.log('hola');
+                    return response.json().then(err => {
+                        let errorMessages = '';
+                        console.log(err)
+                        if (err.errors) {
+                            console.log("1")
+                            for (let field in err.errors) {
+                                errorMessages += `${field}: ${err.errors[field].join(', ')}\n`;
+                            }
+                        } else if (err.error) {
+                            console.log("2")
+                            errorMessages = err.error;
+                        } else if (err.errorPago) {
+                            console.log("3")
+                            errorMessages = err.errorPago;
+                        }
+                        console.log(errorMessages)
+
+                        if (errorMessages) {
+                            console.log("4")
+                            Swal.fire({
+                                title: 'Errores de Validación',
+                                text: errorMessages,
+                                icon: 'error',
+                                confirmButtonText: 'Aceptar'
+                            });
+                        }
+
+                        throw new Error('Error en la respuesta del servidor');
+                    });
+                }
+
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({
@@ -133,23 +224,10 @@
                         timer: 2000
                     });
                     document.getElementById('formProducts').reset();
-                } else {
-                    Swal.fire({
-                        title: 'Error',
-                        text: data.message || 'Hubo un problema al registrar el producto',
-                        icon: 'error',
-                        confirmButtonText: 'Aceptar'
-                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                Swal.fire({
-                    title: 'Error del Servidor',
-                    text: 'No se pudo procesar la solicitud.',
-                    icon: 'error',
-                    confirmButtonText: 'Aceptar'
-                });
             });
     });
 </script>

@@ -66,4 +66,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Service::class, 'users_id'); // Relación con la tabla de servicios
     }
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->user_register = auth()->id();
+        });
+        static::updating(function ($model) {
+            $model->user_update = auth()->id();
+        });
+    }
 }

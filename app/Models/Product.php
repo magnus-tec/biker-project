@@ -18,21 +18,25 @@ class Product extends Model
         'location',
         'warehouse_id',
         'brand_id',
-        'unit_id'
+        'unit_id',
+        'code_sku',
+        'status',
+        'user_register',
+        'user_update',
+        'fecha_registro',
+        'fecha_actualizacion',
+        'warehouse_id',
+        'brand_id',
     ];
 
     public function prices()
     {
         return $this->hasMany(ProductPrice::class);
     }
-
-    // Relationship: A Product belongs to a Brand
     public function brand()
     {
         return $this->belongsTo(Brand::class);
     }
-
-    // Relationship: A Product belongs to a Unit
     public function unit()
     {
         return $this->belongsTo(Unit::class);
@@ -40,5 +44,24 @@ class Product extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
+    }
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'product_id');
+    }
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->user_register = auth()->id();
+        });
+        static::updating(function ($model) {
+            $model->user_update = auth()->id();
+        });
+    }
+    public static  function generateCode()
+    {
+        $lastCodigo = Product::max('code') ?? '0000000';
+        $nextCodigo = intval($lastCodigo) + 1;
+        return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
     }
 }

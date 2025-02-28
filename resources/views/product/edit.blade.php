@@ -12,6 +12,34 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
                 <div>
+                    <label for="code_sku" class="block text-sm font-medium text-gray-700">Codigo</label>
+                    <input type="text" name="code_sku" id="code_sku" value="{{ $product->code_sku }}"
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <h1 for="images" class="col-span-full  text-sm font-medium text-gray-700">Imágenes del
+                        Producto</h1>
+                    @foreach ($product->images as $image)
+                        <div class="relative">
+                            <img src="{{ asset($image->image_path) }}" alt="Imagen del producto"
+                                class="w-20 h-20 object-cover border rounded-lg">
+                            <button type="button"
+                                class="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 py-1 text-xs btn-delete-image"
+                                data-image-id="{{ $image->id }}">
+                                X
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
+                <!-- Contenedor para previsualizar nuevas imágenes -->
+                <div>
+                    <label for="images" class="block text-sm font-medium text-gray-700">Imágenes del Producto</label>
+                    <input type="file" name="new_images[]" id="new_images" accept="image/*" multiple
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
+                    <div id="preview-container" class="grid grid-cols-3 gap-4 mt-4"></div>
+                </div>
+
+                <div>
                     <label for="description" class="block text-sm font-medium text-gray-700">Descripción</label>
                     <input type="text" name="description" id="description" value="{{ $product->description }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
@@ -33,7 +61,7 @@
                         </div>
                     @endif
 
-                    <input type="file" name="bar_code_update" id="image" accept="image/*"
+                    <input type="file" name="bar_code" id="image" accept="image/*"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
 
@@ -106,7 +134,7 @@
                         <label for="prices[{{ $price->type }}]" class="block text-sm font-medium text-gray-700">
                             Precio {{ ucfirst($price->type) }}
                         </label>
-                        <input type="number" name="prices[{{ $price->type }}]" id="prices_{{ $price->type }}"
+                        <input type="decimal" name="prices[{{ $price->type }}]" id="prices_{{ $price->type }}"
                             value="{{ $price->price }}"
                             class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                     </div>
@@ -125,6 +153,25 @@
 </x-app-layout>
 
 <script>
+    //ELIMINAR IMAGENES
+    let deletedImages = [];
+
+    document.addEventListener("click", function(event) {
+        if (event.target.classList.contains("btn-delete-image")) {
+            let imageId = event.target.dataset.imageId;
+
+            if (!deletedImages.includes(imageId)) {
+                deletedImages.push(imageId);
+            }
+
+            let imageContainer = event.target.closest(".relative");
+            if (imageContainer) {
+                imageContainer.remove();
+            }
+        }
+    });
+
+    // FIN
     document.getElementById('image').addEventListener('change', function(event) {
         let file = event.target.files[0];
         let previewImage = document.getElementById('preview-image');
@@ -138,33 +185,51 @@
             reader.readAsDataURL(file);
         }
     });
-
     document.getElementById('remove-image')?.addEventListener('click', function() {
         let previewImage = document.getElementById('preview-image');
-        let currentImage = document.getElementById('current-image'); // Identifica la imagen existente
+        let currentImage = document.getElementById('current-image');
         let imageInput = document.getElementById('image');
         let removeImageInput = document.getElementById('remove_image');
-
-        // Ocultar la imagen actual y permitir subir otra
         if (currentImage) {
             currentImage.style.display = 'none';
         }
-
-        // Limpiar cualquier imagen previa cargada
         previewImage.style.display = 'none';
-
-        // Restablecer el input de imagen
         imageInput.value = '';
-
-        // Indicar que la imagen anterior no debe mostrarse más
         removeImageInput.value = '1';
     });
+    document.getElementById('new_images').addEventListener('change', function(event) {
+        let previewContainer = document.getElementById('preview-container');
+        previewContainer.innerHTML = '';
 
+        for (let file of event.target.files) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'w-24 h-24 object-contain border rounded-lg';
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
+    document.querySelectorAll('.remove-image').forEach(button => {
+        button.addEventListener('click', function() {
+            let imageId = this.getAttribute('data-image-id');
+            this.parentElement.style.display = 'none';
+
+            let inputHidden = document.createElement('input');
+            inputHidden.type = 'hidden';
+            inputHidden.name = 'remove_images[]';
+            inputHidden.value = imageId;
+            document.getElementById('formProducts').appendChild(inputHidden);
+        });
+    });
     document.getElementById('formProducts').addEventListener('submit', async function(e) {
         e.preventDefault();
         let formData = new FormData(this);
         formData.append('_method', 'PUT');
+        formData.append('deleted_images', JSON.stringify(deletedImages));
         try {
             let response = await fetch('{{ route('products.update', $product) }}', {
                 method: 'POST',

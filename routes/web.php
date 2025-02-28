@@ -3,6 +3,8 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
+use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,6 +52,13 @@ Route::group(
         Route::resource('products', App\Http\Controllers\ProductController::class);
         Route::get('product/search', [App\Http\Controllers\ProductController::class, 'search'])->name('products.search');
         Route::get('product/export', [App\Http\Controllers\ProductController::class, 'export'])->name('products.export');
+        Route::get('/productos/{id}/imagenes', function ($id) {
+            $product = Product::findOrFail($id);
+            return response()->json($product->images);
+        });
+        // Route::get('product/import', [App\Http\Controllers\ProductController::class, 'import'])->name('products.import');
+        Route::get('/plantilla-descargar', [App\Http\Controllers\ProductController::class, 'descargarPlantilla'])->name('plantilla.descargar');
+        Route::post('/product/import', [App\Http\Controllers\ProductController::class, 'import'])->name('products.import');
 
         //SERVICIOS
         Route::resource('services', App\Http\Controllers\ServiceController::class);

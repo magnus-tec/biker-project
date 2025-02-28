@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ImportTemplateExport;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\ProductPrice;
@@ -9,11 +10,14 @@ use App\Models\Stock;
 use App\Models\Unit;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException as ValidationValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use App\Imports\ProductsImport;
+
 
 class ProductController extends Controller
 {
@@ -25,61 +29,6 @@ class ProductController extends Controller
         $products = Product::where('status', 1)->with('brand', 'unit', 'warehouse')->get();
         return view('product.index', compact('products'));
     }
-    // public function export(Request $request)
-    // {
-    //     $filter = $request->get('filter', 'estado');
-    //     $query = Product::query()->with('brand', 'unit', 'warehouse');
-    //     if ($filter === 'productos') {
-    //         $query->where('status', 1);
-    //     } elseif ($filter === 'stock_minimo') {
-    //         $query->whereColumn('stock', '<=', 'stock_min');
-    //     } elseif ($filter === 'precio') {
-    //         $query->orderBy('price');
-    //     }
-    //     return Excel::download(new class($query) implements FromQuery, WithHeadings, WithMapping {
-    //         protected $query;
-
-    //         public function __construct($query)
-    //         {
-    //             $this->query = $query;
-    //         }
-
-    //         public function query()
-    //         {
-    //             return $this->query->select('id', 'code', 'description', 'model', 'location', 'warehouse_id', 'brand_id', 'unit_id', 'status');
-    //         }
-
-    //         public function headings(): array
-    //         {
-    //             return [
-    //                 'ID',
-    //                 'Código',
-    //                 'Descripción',
-    //                 'Modelo',
-    //                 'Localización',
-    //                 'Almacén',
-    //                 'Marca',
-    //                 'Unidad',
-    //                 'Estado',
-    //             ];
-    //         }
-
-    //         public function map($product): array
-    //         {
-    //             return [
-    //                 $product->id,
-    //                 $product->code,
-    //                 $product->description,
-    //                 $product->model,
-    //                 $product->location,
-    //                 $product->warehouse->name ?? '',
-    //                 $product->brand->name ?? '',
-    //                 $product->unit->name ?? '',
-    //                 $product->status,
-    //             ];
-    //         }
-    //     }, 'products.xlsx');
-    // }
     public function export(Request $request)
     {
         // Obtén el parámetro 'filter' enviado desde la vista
@@ -220,10 +169,12 @@ class ProductController extends Controller
             }, 'precio.xlsx');
         }
     }
+
     public function search(Request $request)
     {
         $buscar = $request->buscar;
-        $query = Product::where('status', 1)->with('brand', 'unit', 'warehouse');
+        $query = Product::where('status', 1)
+            ->with('brand', 'unit', 'warehouse', 'images');
 
         if (!empty($buscar)) {
             $query->where(function ($q) use ($buscar) {
@@ -234,8 +185,46 @@ class ProductController extends Controller
 
         $products = $query->get();
 
-        // Retornamos los productos en formato JSON
+        // Convertir la ruta de cada imagen para que incluya la URL completa
+        $products->each(function ($product) {
+            $product->images->transform(function ($img) {
+                $img->image_path = asset($img->image_path);
+                return $img;
+            });
+        });
+
         return response()->json($products);
+    }
+    public function descargarPlantilla()
+    {
+        return Excel::download(new ImportTemplateExport, 'Plantilla_Importacion.xlsx');
+    }
+    public function import(Request $request)
+    {
+        // dd($request->file('importFile'));
+        // Validar que el archivo sea correcto
+        $request->validate([
+            'importFile' => 'required|mimes:xlsx,csv',
+        ]);
+
+        try {
+            Excel::import(new ProductsImport(auth()->id()), $request->file('importFile'));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Productos importados correctamente.'
+            ]);
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->failures()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
 
@@ -256,31 +245,155 @@ class ProductController extends Controller
         return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
     }
 
+    // public function store(Request $request)
+    // {
+    //     // return response()->json($request);
+    //     $messages = [
+    //         'description.string' => 'La descripción debe ser un texto.',
+    //         'model.required' => 'El modelo es obligatorio.',
+    //         'warehouse_id.required' => 'El almacén es obligatorio.',
+    //         'warehouse_id.exists' => 'El almacén seleccionado no es válido.',
+    //         'brand_id.required' => 'La marca es obligatoria.',
+    //         'brand_id.exists' => 'La marca seleccionada no es válida.',
+    //         'unit_id.required' => 'La unidad es obligatoria.',
+    //         'unit_id.exists' => 'La unidad seleccionada no es válida.',
+    //         'code_sku.required' => 'El código  es obligatorio.',
+    //         'code_sku.unique' => 'El código  ya está registrado.',
+    //         'prices.array' => 'Los precios deben ser una lista.',
+    //         'prices.*.numeric' => 'Cada precio debe ser un número válido.',
+    //         'prices.*.min' => 'Cada precio debe ser mayor o igual a 0.',
+    //     ];
+
+    //     try {
+    //         $validated = $request->validate([
+    //             'description' => 'nullable|string',
+    //             'amount' => 'nullable|integer',
+    //             'model' => 'required|string',
+    //             'location' => 'nullable|string',
+    //             'warehouse_id' => 'required|exists:warehouses,id',
+    //             'brand_id' => 'required|exists:brands,id',
+    //             'unit_id' => 'required|exists:units,id',
+    //             'prices' => 'nullable|array',
+    //             'prices.*' => 'nullable|numeric|min:0',
+    //             'code_sku' => 'required|string|unique:products,code_sku',
+    //         ], $messages);
+
+    //         $validated['code'] = $this->generateCode();
+    //     } catch (ValidationValidationException $e) {
+    //         return response()->json(['errors' => $e->errors()], 422);
+    //     }
+
+    //     $product = Product::create($validated);
+    //     // Manejo de la imagen de QR
+    //     if ($request->hasFile('image')) {
+    //         $image = $request->file('image');
+    //         $imageName = time() . '_' . $image->getClientOriginalName();
+    //         $image->move(public_path('qr/products'), $imageName);
+    //         $product->bar_code = 'qr/products/' . $imageName;
+    //         $product->save();
+    //     }
+    //     if ($request->hasFile('images')) {
+    //         $images = $request->file('images');
+    //         foreach ($images as $image) {
+    //             $imageName = time() . '_' . $image->getClientOriginalName();
+    //             $image->move(public_path('images/products'), $imageName);
+
+    //             $product->images()->create([
+    //                 'image_path' => 'images/products/' . $imageName,
+    //             ]);
+    //         }
+    //     }
+    //     if ($product) {
+    //         $prices = $validated['prices'] ?? [];
+    //         $priceData = [];
+    //         foreach ($prices as $type => $price) {
+    //             if (!is_null($price)) {
+    //                 $priceData[] = [
+    //                     'product_id' => $product->id,
+    //                     'type' => $type,
+    //                     'price' => $price,
+    //                 ];
+    //             }
+    //         }
+    //         Stock::create([
+    //             'product_id' => $product->id,
+    //             'quantity' => $request->quantity,
+    //             'minimum_stock' => $request->minimum_stock,
+    //         ]);
+    //         if (!empty($priceData)) {
+    //             ProductPrice::insert($priceData);
+    //         }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => '¡El producto ha sido registrado con éxito!',
+    //             'product' => $product
+    //         ]);
+    //     }
+
+    //     return response()->json([
+    //         'success' => false,
+    //         'message' => 'Error al registrar el producto',
+    //     ]);
+    // }
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'description' => 'nullable|string',
-            'amount' => 'nullable|integer',
-            'model' => 'nullable|string',
-            'location' => 'nullable|string',
-            'warehouse_id' => 'nullable|exists:warehouses,id',
-            'brand_id' => 'nullable|exists:brands,id',
-            'unit_id' => 'nullable|exists:units,id',
-            'prices' => 'nullable|array',
-            'prices.*' => 'nullable|numeric|min:0',
-        ]);
-        $validated['code'] = $this->generateCode();
+        $messages = [
+            'description.string' => 'La descripción debe ser un texto.',
+            'model.required' => 'El modelo es obligatorio.',
+            'warehouse_id.required' => 'El almacén es obligatorio.',
+            'warehouse_id.exists' => 'El almacén seleccionado no es válido.',
+            'brand_id.required' => 'La marca es obligatoria.',
+            'brand_id.exists' => 'La marca seleccionada no es válida.',
+            'unit_id.required' => 'La unidad es obligatoria.',
+            'unit_id.exists' => 'La unidad seleccionada no es válida.',
+            'code_sku.required' => 'El código es obligatorio.',
+            'code_sku.unique' => 'El código ya está registrado.',
+            'prices.array' => 'Los precios deben ser una lista.',
+            'prices.*.numeric' => 'Cada precio debe ser un número válido.',
+            'prices.*.min' => 'Cada precio debe ser mayor o igual a 0.',
+        ];
 
-        $product = Product::create($validated);
-        // Manejo de la imagen
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('images/products'), $imageName);
-            $product->bar_code = 'images/products/' . $imageName;
-            $product->save();
+        try {
+            $validated = $request->validate([
+                'description' => 'nullable|string',
+                'amount' => 'nullable|integer',
+                'model' => 'required|string',
+                'location' => 'nullable|string',
+                'warehouse_id' => 'required|exists:warehouses,id',
+                'brand_id' => 'required|exists:brands,id',
+                'unit_id' => 'required|exists:units,id',
+                'prices' => 'nullable|array',
+                'prices.*' => 'nullable|numeric|min:0',
+                'code_sku' => 'required|string|unique:products,code_sku',
+            ], $messages);
+
+            $validated['code'] = $this->generateCode();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
         }
-        if ($product) {
+
+        DB::beginTransaction();
+
+        try {
+            $product = Product::create($validated);
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('qr/products'), $imageName);
+                $product->bar_code = 'qr/products/' . $imageName;
+                $product->save();
+            }
+            if ($request->hasFile('images')) {
+                $images = $request->file('images');
+                foreach ($images as $image) {
+                    $imageName = time() . '_' . $image->getClientOriginalName();
+                    $image->move(public_path('images/products'), $imageName);
+
+                    $product->images()->create([
+                        'image_path' => 'images/products/' . $imageName,
+                    ]);
+                }
+            }
             $prices = $validated['prices'] ?? [];
             $priceData = [];
             foreach ($prices as $type => $price) {
@@ -292,25 +405,31 @@ class ProductController extends Controller
                     ];
                 }
             }
+
             Stock::create([
                 'product_id' => $product->id,
                 'quantity' => $request->quantity,
                 'minimum_stock' => $request->minimum_stock,
             ]);
+
             if (!empty($priceData)) {
                 ProductPrice::insert($priceData);
             }
+
+            DB::commit();
             return response()->json([
                 'success' => true,
                 'message' => '¡El producto ha sido registrado con éxito!',
                 'product' => $product
             ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el producto',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al registrar el producto',
-        ]);
     }
 
     /**
@@ -343,39 +462,86 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // return response()->json($request);
+        $messages = [
+            'description.string' => 'La descripción debe ser un texto.',
+            'model.required' => 'El modelo es obligatorio.',
+            'warehouse_id.required' => 'El almacén es obligatorio.',
+            'warehouse_id.exists' => 'El almacén seleccionado no es válido.',
+            'brand_id.required' => 'La marca es obligatoria.',
+            'brand_id.exists' => 'La marca seleccionada no es válida.',
+            'unit_id.required' => 'La unidad es obligatoria.',
+            'unit_id.exists' => 'La unidad seleccionada no es válida.',
+            'code_sku.required' => 'El código  es obligatorio.',
+            'code_sku.unique' => 'El código  ya está registrado.',
+            'prices.array' => 'Los precios deben ser una lista.',
+            'prices.*.numeric' => 'Cada precio debe ser un número válido.',
+            'prices.*.min' => 'Cada precio debe ser mayor o igual a 0.',
+        ];
         try {
             // Validar los datos recibidos
             $validated = $request->validate([
                 'description' => 'nullable|string',
                 'amount' => 'nullable|integer',
-                'model' => 'nullable|string',
+                'model' => 'required|string',
                 'location' => 'nullable|string',
-                'warehouse_id' => 'nullable|exists:warehouses,id',
-                'brand_id' => 'nullable|exists:brands,id',
-                'unit_id' => 'nullable|exists:units,id',
+                'warehouse_id' => 'required|exists:warehouses,id',
+                'brand_id' => 'required|exists:brands,id',
+                'unit_id' => 'required|exists:units,id',
                 'prices' => 'nullable|array',
                 'prices.*' => 'nullable|numeric|min:0',
-            ]);
-
+                'code_sku' => 'required|string|unique:products,code_sku,' . $id,
+            ], $messages);
+        } catch (ValidationValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 500);
+        }
+        try {
             // Buscar el producto existente
             $product = Product::findOrFail($id);
 
-            if ($request->hasFile('bar_code_update')) {
+            if ($request->hasFile('bar_code')) {
                 // Eliminar imagen anterior si existe
                 if (!empty($product->bar_code) && file_exists(public_path($product->bar_code))) {
                     unlink(public_path($product->bar_code));
                 }
 
                 // Guardar la nueva imagen
-                $image = $request->file('bar_code_update');
+                $image = $request->file('bar_code');
                 $imageName = time() . '_' . $image->getClientOriginalName();
-                $image->move(public_path('images/products'), $imageName);
-                $product->bar_code = 'images/products/' . $imageName;
+                $image->move(public_path('qr/products'), $imageName);
+                $product->bar_code = 'qr/products/' . $imageName;
+            }
+            if ($request->filled('bar_code')) {
+                $product->bar_code = $request->bar_code;
+            }
+            if ($request->hasFile('new_images')) {
+                $newImages = $request->file('new_images');
+
+                foreach ($newImages as $image) {
+                    $imageName = time() . '_' . $image->getClientOriginalName();
+                    $image->move(public_path('images/products'), $imageName);
+
+                    $product->images()->create([
+                        'image_path' => 'images/products/' . $imageName,
+                    ]);
+                }
             }
 
-            // Si se envía un nuevo código de barras, actualizarlo
-            if ($request->filled('bar_code_update')) {
-                $product->bar_code = $request->bar_code_update;
+            // Asegurar que deleted_images es un array válido
+            $deletedImages = $request->input('deleted_images', []);
+            $deletedImages = is_array($deletedImages) ? $deletedImages : json_decode($deletedImages, true);
+
+            if (!empty($deletedImages)) {
+                foreach ($deletedImages as $imageId) {
+                    $image = $product->images()->find($imageId);
+                    if ($image) {
+                        $imagePath = public_path($image->image_path);
+                        if (file_exists($imagePath)) {
+                            unlink($imagePath); // Eliminar archivo físico
+                        }
+                        $image->delete(); // Eliminar registro en la base de datos
+                    }
+                }
             }
 
             // Actualizar los datos del producto

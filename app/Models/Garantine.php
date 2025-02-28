@@ -44,4 +44,13 @@ class Garantine extends Model
     {
         return $this->belongsTo(User::class, 'user_update');
     }
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->user_register = auth()->id();
+        });
+        static::updating(function ($model) {
+            $model->user_update = auth()->id();
+        });
+    }
 }

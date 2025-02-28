@@ -70,7 +70,7 @@
                             </td>
 
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $drive->nro_motor }}
+                                {{ $drive->nro_documento }}
                             </td>
                             <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                 <button type="button" id ="btn-{{ $drive->id }}"

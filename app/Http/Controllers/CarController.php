@@ -30,7 +30,7 @@ class CarController extends Controller
     {
         try {
             $nro_motor = $request->nro_motor;
-            $driver = Drive::where('nro_motor', $nro_motor)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
+            $driver = Drive::where('nro_documento', $nro_motor)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
             if ($driver) {
                 $car = Car::where('drives_id', $driver->id)->where('status', 1)->get();
                 if ($car) {
@@ -63,7 +63,7 @@ class CarController extends Controller
     {
         try {
             $nro_motor = $request->nro_motor;
-            $drive = Drive::where('nro_motor', $nro_motor)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
+            $drive = Drive::where('nro_documento', $nro_motor)->select('id', 'nombres', 'apellido_paterno', 'apellido_materno')->first();
             if ($drive) {
                 return response()->json(['drive' => $drive]);
             } else {
@@ -98,7 +98,7 @@ class CarController extends Controller
                 'nro_chasis' => 'required|string'
             ], $messages);
         } catch (ValidationValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 500);
+            return response()->json(['errors' => $e->errors()], 422);
         }
         try {
             $car = Car::create([
