@@ -168,8 +168,7 @@
             }
         }
         document.getElementById("formAgregarDetalles").addEventListener("submit", function(event) {
-            event.preventDefault(); // Evita el envío por defecto
-
+            event.preventDefault();
             enviarDetalles();
         });
         async function enviarDetalles() {
@@ -333,14 +332,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             window.authUserId = @json(auth()->user()->id);
 
-            fecha_desde = document.getElementById('fecha_desde');
-            fecha_hasta = document.getElementById('fecha_hasta');
-            let today = new Date().toISOString().split('T')[0];
-            fecha_desde.value = today;
-            fecha_hasta.value = today;
+            // calculamos la fecha actual
+            let fecha_desde = document.getElementById('fecha_desde');
+            let fecha_hasta = document.getElementById('fecha_hasta');
+
+            let today = new Date();
+            let year = today.getFullYear();
+            let month = String(today.getMonth() + 1).padStart(2, '0'); // Meses van de 0 a 11, por eso se suma 1
+            let day = String(today.getDate()).padStart(2, '0');
+
+            let formattedDate = `${year}-${month}-${day}`;
+
+            fecha_desde.value = formattedDate;
+            fecha_hasta.value = formattedDate;
+
             if (fecha_desde && fecha_hasta) {
                 finAllServices();
             }
+            //fin calculo
         });
     </script>
 

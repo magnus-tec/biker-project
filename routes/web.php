@@ -75,6 +75,9 @@ Route::group(
             Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
             Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
         });
+        //VENTAS
+        Route::resource('sales',  App\Http\Controllers\SaleController::class);
+        Route::get('/sale/listado', [App\Http\Controllers\SaleController::class, 'filtroPorfecha'])->name('sales.filtroPorfecha');
     }
 );
 require __DIR__ . '/auth.php';

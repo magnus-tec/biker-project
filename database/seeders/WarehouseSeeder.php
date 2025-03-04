@@ -15,8 +15,9 @@ class WarehouseSeeder extends Seeder
     {
         DB::table('warehouses')->insert([
             ['name' => 'Almacén Central'],
-            ['name' => 'Depósito Secundario'],
-            ['name' => 'Bodega Norte'],
+            ['name' => 'Almacén Sucursal'],
+            ['name' => 'Tienda Junin'],
+            ['name' => 'Tienda Mazuko'],
         ]);
     }
 }

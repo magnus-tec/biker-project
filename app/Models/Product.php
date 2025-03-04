@@ -64,4 +64,8 @@ class Product extends Model
         $nextCodigo = intval($lastCodigo) + 1;
         return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
     }
+    public function stock()
+    {
+        return $this->hasOne(Stock::class, 'product_id');
+    }
 }

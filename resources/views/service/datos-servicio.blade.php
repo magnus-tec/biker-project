@@ -166,12 +166,12 @@
                 contenedorListadoCar.innerHTML = '';
                 data.car.forEach(car => {
                     let row = `
-                        <div class="grid grid-cols-7 gap-2 border-b items-center p-2">
+                        <div class="grid grid-cols-7 gap-1 border-b items-center p-2 border">
                             <span class="text-left">Placa: ${car.placa ? car.placa : 'Sin placa'}</span>
                             <span class="text-left">Marca: ${car.marca ? car.marca : 'Sin marca'}</span>
                             <span class="text-left">Modelo: ${car.modelo ? car.modelo : 'Sin modelo'}</span>
                             <span class="text-left">Color: ${car.color ? car.color : 'Sin color'}</span>
-                            <span class="text-left">Año: ${car.anio ? car.anio : 'Sin anio'}</span>
+                            <span class="text-left">Año: ${car.anio ? car.anio : 'Sin año'}</span>
                             <button onclick="seleccionarVehiculo(this, ${car.id}); cerrarModal()" 
                                 class="px-3 py-1 bg-blue-500 text-white rounded-lg" type="button">
                                 Asignar
