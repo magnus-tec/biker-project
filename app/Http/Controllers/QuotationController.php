@@ -32,7 +32,7 @@ class QuotationController extends Controller
     }
     public function generatePDF($id)
     {
-        $quotation = Quotation::with('saleItems.item', 'userRegister')->find($id);
+        $quotation = Quotation::with('quotationItems.item', 'userRegister')->find($id);
         if (!$quotation) {
             return abort(404, 'Venta no encontrada');
         }
