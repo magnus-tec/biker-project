@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{-- Registro de Socios --}}
+            Vender Cotizacion
         </h2>
     </x-slot>
     <div class="container mx-auto p-2 text-sm">
@@ -103,7 +103,8 @@
                     <select id="paymentType" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
                         @foreach ($payments as $payment)
-                            <option value="{{ $payment->id }}">{{ $payment->name }}</option>
+                            <option value="{{ $payment->id }}">
+                                {{ $payment->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -560,10 +561,6 @@
                 alert("Error al guardar la orden.");
             });
     });
-
-    document.addEventListener("DOMContentLoaded", () => {
-
-    });
     // api dni
     const inputDni = document.getElementById('dni_personal');
     const token =
@@ -594,4 +591,55 @@
     inputDni.addEventListener('input', () => {
         buscarDNI(inputDni.value);
     });
+    document.addEventListener("DOMContentLoaded", () => {
+        getCotizacion();
+    });
+
+    function getCotizacion() {
+        // Obtener la ruta de la URL actual
+        let path = window.location.pathname;
+
+        // Dividir la ruta por "/"
+        let segments = path.split("/");
+
+        // El ID está al final de la URL, en este caso la última parte
+        let quotationId = segments[segments.length - 1];
+
+        console.log(quotationId); // Imprime: 13
+        fetch(`{{ route('quotations.show', ':id') }}`.replace(':id', quotationId), {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // console.log(data)
+                // data.quotation.quotation_items.forEach(item => {
+                //     /*orderProducts.push({
+                //         product_id: item.item_id,
+                //         quantity: item.quantity,
+                //         unit_price: item.unit_price
+                //     });*/
+
+                //     let prueba = {
+                //         stock: {
+                //             quantity: 1
+                //         },
+                //         prices: {
+
+                //         },
+                //         selectedQuantity: 1,
+                //         selectedPrice: 2
+                //     }
+
+                //     addProductToOrder(prueba);
+
+                //     // Remover el producto agregado del listado para evitar duplicados
+                //     //products = products.filter(p => p.id != prodId);
+                //     //renderProducts(orderProducts);
+
+                // })
+            })
+    }
 </script>

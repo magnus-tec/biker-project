@@ -7,9 +7,15 @@
         <!-- Encabezado y búsqueda -->
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-800">Lista de Productos</h2>
-            <div class="mb-4">
-                <div class="flex">
+            <div class="flex items-center">
+                <div class="flex ">
                     <!-- Campo de búsqueda y botón -->
+                    <select name="almacen" id="almacen" class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
+                        <option value="todos">Todos</option>
+                        @foreach ($warehouses as $warehouse => $almacen)
+                            <option value="{{ $almacen->id }}">{{ $almacen->name }}</option>
+                        @endforeach
+                    </select>
                     <input type="text" id="buscar" name="buscar" placeholder="Buscar productos..."
                         value="{{ request('buscar') }}" class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
                     <button id="btnBuscar"
@@ -88,6 +94,9 @@
                             Unidad MEDIDA
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Precio Compra
+                        </th>
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -96,93 +105,11 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="productsTableBody">
-                    <!-- Aquí se cargarán las filas de la tabla -->
-                    @forelse($products as $product)
-                        <tr>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                                {{ $product->code_sku }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                @if ($product->bar_code)
-                                    <img src="{{ asset($product->bar_code) }}" alt="Producto"
-                                        class="w-16 h-16 object-contain border rounded-lg cursor-pointer product-image">
-                                @else
-                                    <span class="text-gray-500">Sin imagen</span>
-                                @endif
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                                @if ($product->images->isNotEmpty())
-                                    <img src="{{ asset($product->images->first()->image_path) }}" alt="Producto"
-                                        class="w-20 h-20 object-cover rounded-lg cursor-pointer"
-                                        onclick="openModal({{ $product->id }})">
-                                @else
-                                    <span class="text-gray-400">No Image</span>
-                                @endif
-                            </td>
-
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
-                                {{ $product->description }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
-                                {{ $product->model }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
-                                {{ $product->location }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
-                                {{ $product->warehouse->name }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
-                                {{ $product->brand->name }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
-                                {{ $product->unit->name }}
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium text-gray-900">
-                                <button type="button" id="btn-{{ $product->id }}"
-                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md {{ $product->status == 0 ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700' }}"
-                                    onclick="confirmDelete({{ $product->id }}, '{{ $product->status == 0 ? '¿Está seguro de desactivar este registro?' : '¿Está seguro de activar este registro?' }}')">
-                                    @if ($product->status == 1)
-                                        Activado
-                                    @else
-                                        Deshabilitado
-                                    @endif
-                                </button>
-                            </td>
-                            <td class="px-3 py-1 whitespace-nowrap text-xs font-medium">
-                                <a href="{{ route('products.edit', $product->id) }}"
-                                    class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                    Editar
-                                </a>
-                                <form action="{{ route('products.destroy', $product->id) }}" method="POST"
-                                    style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900"
-                                        onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
-                                        Eliminar
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="10" class="px-3 py-1 text-center text-gray-500">
-                                No hay registros disponibles
-                            </td>
-                        </tr>
-                    @endforelse
                 </tbody>
             </table>
         </div>
         {{-- Si utilizas paginación, puedes colocar los links aquí --}}
         {{-- {{ $products->links() }} --}}
-    </div>
-    <div id="imageModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 hidden z-50">
-        <div class="relative">
-            <button id="closeModal" class="absolute top-0 right-0 m-4 text-black text-3xl font-bold">&times;</button>
-            <img id="modalImage" src="" alt="Imagen Ampliada" class="max-w-sm max-h-screen rounded-lg">
-        </div>
     </div>
     <!-- Modal -->
     <div id="imagesModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
@@ -280,6 +207,8 @@
             document.getElementById("imagesModal").classList.add("hidden");
         }
         document.addEventListener('DOMContentLoaded', () => {
+            fillAllProducts();
+
             // Inicializar Swiper
             new Swiper(".mySwiper", {
                 loop: true,
@@ -293,15 +222,17 @@
                 },
                 effect: "slide",
             });
-            const btnBuscar = document.getElementById('btnBuscar');
-            const inputBuscar = document.getElementById('buscar');
-            const tableBody = document.getElementById('productsTableBody');
 
-            btnBuscar.addEventListener('click', (e) => {
-                e.preventDefault();
+
+            function fillAllProducts() {
+                const btnBuscar = document.getElementById('btnBuscar');
+                const inputBuscar = document.getElementById('buscar');
+                const tableBody = document.getElementById('productsTableBody');
                 const buscarValue = inputBuscar.value;
-
-                fetch(`{{ route('products.search') }}?buscar=${encodeURIComponent(buscarValue)}`)
+                const almacen = document.getElementById('almacen').value;
+                fetch(
+                        `{{ route('products.search') }}?buscar=${encodeURIComponent(buscarValue)}&almacen=${encodeURIComponent(almacen)}`
+                    )
                     .then(response => response.json())
                     .then(products => {
                         let rowsHtml = '';
@@ -310,18 +241,15 @@
                             products.forEach(product => {
                                 rowsHtml += `
                                     <tr>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${product.code}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${product.code_sku}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            ${product.bar_code 
-                                                ? `<img src="${product.bar_code}" alt="Producto" class="w-16 h-16 object-contain border rounded-lg cursor-pointer product-image">
-                                                                                                                                                                                                                                                                                        ` 
-                                                : '<span class="text-gray-500">Sin imagen</span>'}
+                                            ${product.code_bar ?? ''}
                                         </td>
                                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             ${product.images?.length > 0 
                                 ? `<img src="${product.images[0].image_path}" alt="Producto"
-                                                                                                                                    class="w-20 h-20 object-cover rounded-lg cursor-pointer"
-                                                                                                                                    onclick="openModal(${product.id})">`
+                                                                                                                                                                                                                                                                    class="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                                                                                                                                                                                                                                                                    onclick="openModal(${product.id})">`
                                 : '<span class="text-gray-400">No Image</span>'}
                         </td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.description ?? ''}</td>
@@ -332,6 +260,7 @@
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.warehouse?.name ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.brand?.name ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.unit?.name ?? ''}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.prices[0].price ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                             <button type="button" id="btn-${product.id}"
                                                 class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md ${product.status == 0 ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700'}"
@@ -364,6 +293,11 @@
                         tableBody.innerHTML = rowsHtml;
                     })
                     .catch(error => console.error('Error en la búsqueda:', error));
+            }
+            btnBuscar.addEventListener('click', (e) => {
+                e.preventDefault();
+                fillAllProducts();
+
             });
             // fin de swiper
 
@@ -396,7 +330,7 @@
                     .then(response => response.json())
                     .then(data => {
                         alert(data.message);
-                        location.reload();
+                        // location.reload();
                         importModal.classList.add('hidden');
                     })
                     .catch(error => console.error('Error:', error));
@@ -412,27 +346,5 @@
             let filter = exportFilter.value;
             window.location.href = `{{ route('products.export') }}?filter=${encodeURIComponent(filter)}`;
         });
-
-        // Función para abrir el modal con el QR del producto
-        function openImageModal(src) {
-            const modal = document.getElementById('imageModal');
-            const modalImage = document.getElementById('modalImage');
-            modalImage.src = src;
-            modal.classList.remove('hidden');
-        }
-        document.querySelectorAll('.product-image').forEach(image => {
-            image.addEventListener('click', () => {
-                openImageModal(image.src);
-            });
-        });
-        document.getElementById('closeModal').addEventListener('click', () => {
-            document.getElementById('imageModal').classList.add('hidden');
-        });
-        document.getElementById('imageModal').addEventListener('click', (e) => {
-            if (e.target.id === 'imageModal') {
-                e.target.classList.add('hidden');
-            }
-        });
-        //FIN QR PRODUCTO
     </script>
 </x-app-layout>

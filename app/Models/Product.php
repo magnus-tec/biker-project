@@ -11,7 +11,7 @@ class Product extends Model
 
     protected $fillable = [
         'code',
-        'bar_code',
+        'code_bar',
         'description',
         'amount',
         'model',
@@ -26,7 +26,6 @@ class Product extends Model
         'fecha_registro',
         'fecha_actualizacion',
         'warehouse_id',
-        'brand_id',
     ];
 
     public function prices()

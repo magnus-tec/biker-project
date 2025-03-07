@@ -41,18 +41,19 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
     /**
      * Se espera que el orden de columnas sea:
      * 0 => Código
-     * 1 => Descripción
-     * 2 => Modelo
-     * 3 => Localización
-     * 4 => Almacén
-     * 5 => Marca
-     * 6 => Unidad
-     * 7 => Precio Compra
-     * 8 => Precio Mayorista
-     * 9 => Precio Sucursal A
-     * 10 => Precio Sucursal B
-     * 11 => Cantidad en Stock
-     * 12 => Stock Mínimo
+     * 1 => Código de barras
+     * 2 => Descripción
+     * 3 => Modelo
+     * 4 => Localización
+     * 5 => Almacén
+     * 6 => Marca
+     * 7 => Unidad
+     * 8 => Precio Compra
+     * 9 => Precio Mayorista
+     * 10 => Precio Sucursal A
+     * 11 => Precio Sucursal B
+     * 12 => Cantidad en Stock
+     * 13 => Stock Mínimo
      */
     public function onRow(Row $row)
     {
@@ -61,12 +62,13 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
         // Crear el producto en la tabla products
         $product = Product::create([
             'code_sku'      => $rowData[0],
-            'description'   => $rowData[1],
-            'model'         => $rowData[2],
-            'location'      => $rowData[3],
-            'warehouse_id'  => Warehouse::where('name', $rowData[4])->value('id'),
-            'brand_id'      => Brand::where('name', $rowData[5])->value('id'),
-            'unit_id'       => Unit::where('name', $rowData[6])->value('id'),
+            'code_bar'      => $rowData[1],
+            'description'   => $rowData[2],
+            'model'         => $rowData[3],
+            'location'      => $rowData[4],
+            'warehouse_id'  => Warehouse::where('name', $rowData[5])->value('id'),
+            'brand_id'      => Brand::where('name', $rowData[6])->value('id'),
+            'unit_id'       => Unit::where('name', $rowData[7])->value('id'),
             // Se asume que tienes definido el método generateCode() en el modelo Product
             'code'          => Product::generateCode(),
             'user_register' => $this->userId,
@@ -75,10 +77,10 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
 
         // Insertar precios (si se proporcionan)
         $priceTypes = [
-            'buy'       => 7,  // Precio Compra
-            'wholesale' => 8,  // Precio Mayorista
-            'sucursalA' => 9,  // Precio Sucursal A
-            'sucursalB' => 10, // Precio Sucursal B
+            'buy'       => 8,  // Precio Compra
+            'wholesale' => 9,  // Precio Mayorista
+            'sucursalA' => 10,  // Precio Sucursal A
+            'sucursalB' => 11, // Precio Sucursal B
         ];
 
         foreach ($priceTypes as $type => $index) {
@@ -92,11 +94,11 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
         }
 
         // Insertar stock (si se proporcionan datos)
-        if ((isset($rowData[11]) && $rowData[11] !== '') || (isset($rowData[12]) && $rowData[12] !== '')) {
+        if ((isset($rowData[12]) && $rowData[12] !== '') || (isset($rowData[13]) && $rowData[13] !== '')) {
             Stock::create([
                 'product_id'    => $product->id,
-                'quantity'      => isset($rowData[11]) ? $rowData[11] : 0,
-                'minimum_stock' => isset($rowData[12]) ? $rowData[12] : 0,
+                'quantity'      => isset($rowData[12]) ? $rowData[12] : 0,
+                'minimum_stock' => isset($rowData[13]) ? $rowData[13] : 0,
             ]);
         }
     }
@@ -106,6 +108,7 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
         return [
             // Validación de las columnas obligatorias
             '0' => 'required|unique:products,code_sku',
+            '1' => 'required|unique:products,code_bar',
             '4' => 'required|exists:warehouses,name',
             '5' => 'required|exists:brands,name',
             '6' => 'required|exists:units,name',
@@ -117,6 +120,8 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
         return [
             '0.required'   => 'El SKU del producto es obligatorio.',
             '0.unique'     => 'El SKU ya existe en la base de datos.',
+            '1.required'   => 'El codigo de barras del producto es obligatorio.',
+            '1.unique'     => 'El codigo de barras  ya existe en la base de datos.',
             '4.exists'     => 'El almacén ingresado no existe. Verifica el nombre correcto.',
             '5.exists'     => 'La marca ingresada no es válida.',
             '6.exists'     => 'La unidad ingresada no es válida.',

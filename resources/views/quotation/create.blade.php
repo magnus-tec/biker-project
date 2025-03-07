@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{-- Registro de Socios --}}
+            cotizacion insertar
         </h2>
     </x-slot>
     <div class="container mx-auto p-2 text-sm">
@@ -535,7 +535,7 @@
         };
 
         // Enviar a "products.store" mediante fetch (POST)
-        fetch('{{ route('sales.store') }}', {
+        fetch('{{ route('quotations.store') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -552,17 +552,13 @@
             .then(data => {
                 // Manejar la respuesta, por ejemplo, redireccionar o mostrar un mensaje
                 console.log("Orden guardada:", data);
-                alert("La orden se ha guardado correctamente.");
-                location.reload();
+                alert("La cotizacion se ha guardado correctamente.");
+                // location.reload();
             })
             .catch(error => {
                 console.error("Error al guardar la orden:", error);
                 alert("Error al guardar la orden.");
             });
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-
     });
     // api dni
     const inputDni = document.getElementById('dni_personal');

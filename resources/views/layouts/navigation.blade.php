@@ -62,6 +62,10 @@
                         class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                         Ventas
                     </a>
+                    <a href="{{ route('quotations.index') }}"
+                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        Cotizaciones
+                    </a>
                 </div>
             </div>
 

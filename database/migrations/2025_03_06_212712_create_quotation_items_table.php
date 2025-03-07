@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sale_items', function (Blueprint $table) {
+        Schema::create('quotation_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sale_id')->constrained('sales')->onDelete('cascade');
+            $table->foreignId('quotation_id')->constrained('quotations')->onDelete('cascade');
             $table->string('item_type'); // 'product' o 'service'
             $table->unsignedBigInteger('item_id')->nullable(); // ID del producto o servicio
             $table->integer('quantity')->nullable(); // Solo aplica a productos
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sale_items');
+        Schema::dropIfExists('quotation_items');
     }
 };

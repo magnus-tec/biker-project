@@ -15,6 +15,7 @@ class ImportTemplateExport implements FromArray, WithHeadings, WithColumnWidths
     {
         return [
             'Código',           // Código del producto
+            'Código de barras',           // Código del producto
             'Descripción',      // Nombre o descripción
             'Modelo',           // Modelo del producto
             'Localización',     // Ubicación en el almacén
@@ -41,6 +42,7 @@ class ImportTemplateExport implements FromArray, WithHeadings, WithColumnWidths
             // Fila de ejemplo con sugerencias sobre qué ingresar
             [
                 'Ej: P001',
+                'Ej: 156001',
                 'Ej: Shampoo Hidratante 500ml',
                 'Ej: XYZ-123',
                 'Ej: Pasillo 3, Estante 2',
@@ -63,18 +65,19 @@ class ImportTemplateExport implements FromArray, WithHeadings, WithColumnWidths
     {
         return [
             'A' => 15, // Código
-            'B' => 35, // Descripción
-            'C' => 20, // Modelo
-            'D' => 25, // Localización
-            'E' => 50, // Almacén
-            'F' => 40, // Marca
-            'G' => 40, // Unidad
-            'H' => 20, // Precio Compra
-            'I' => 20, // Precio Mayorista
-            'J' => 20, // Precio Sucursal A
-            'K' => 20, // Precio Sucursal B
-            'L' => 20, // Cantidad en Stock
-            'M' => 20, // Stock Mínimo
+            'B' => 15, // Código de Barras
+            'C' => 35, // Descripción
+            'D' => 20, // Modelo
+            'E' => 25, // Localización
+            'F' => 50, // Almacén
+            'G' => 40, // Marca
+            'H' => 40, // Unidad
+            'I' => 20, // Precio Compra
+            'J' => 20, // Precio Mayorista
+            'K' => 20, // Precio Sucursal A
+            'L' => 20, // Precio Sucursal B
+            'M' => 20, // Cantidad en Stock
+            'N' => 20, // Stock Mínimo
         ];
     }
 }

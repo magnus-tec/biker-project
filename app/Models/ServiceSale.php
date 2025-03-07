@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Unit extends Model
+class ServiceSale extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'unit_type_id'];
+
+    protected $table = 'services_sales';
+    protected $fillable = ['name', 'default_price'];
 }

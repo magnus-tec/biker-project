@@ -17,7 +17,7 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use App\Imports\ProductsImport;
-
+use App\Models\UnitType;
 
 class ProductController extends Controller
 {
@@ -26,8 +26,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::where('status', 1)->with('brand', 'unit', 'warehouse')->get();
-        return view('product.index', compact('products'));
+        $warehouses = Warehouse::all();
+        $products = Product::where('status', 1)->with('brand', 'unit', 'warehouse', 'prices')->get();
+        return view('product.index', compact('products', 'warehouses'));
     }
     public function export(Request $request)
     {
@@ -174,13 +175,16 @@ class ProductController extends Controller
     {
         $buscar = $request->buscar;
         $query = Product::where('status', 1)
-            ->with('brand', 'unit', 'warehouse', 'images');
+            ->with('brand', 'unit', 'warehouse', 'images', 'prices');
 
         if (!empty($buscar)) {
             $query->where(function ($q) use ($buscar) {
                 $q->where('description', 'like', "%{$buscar}%")
                     ->orWhere('code', 'like', "%{$buscar}%");
             });
+        }
+        if ($request->has('almacen') && $request->almacen !== 'todos') {
+            $query->where('warehouse_id', $request->almacen);
         }
 
         $products = $query->get();
@@ -208,6 +212,7 @@ class ProductController extends Controller
         ]);
 
         try {
+            // return response()->json($request);
             Excel::import(new ProductsImport(auth()->id()), $request->file('importFile'));
 
             return response()->json([
@@ -245,96 +250,6 @@ class ProductController extends Controller
         return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
     }
 
-    // public function store(Request $request)
-    // {
-    //     // return response()->json($request);
-    //     $messages = [
-    //         'description.string' => 'La descripción debe ser un texto.',
-    //         'model.required' => 'El modelo es obligatorio.',
-    //         'warehouse_id.required' => 'El almacén es obligatorio.',
-    //         'warehouse_id.exists' => 'El almacén seleccionado no es válido.',
-    //         'brand_id.required' => 'La marca es obligatoria.',
-    //         'brand_id.exists' => 'La marca seleccionada no es válida.',
-    //         'unit_id.required' => 'La unidad es obligatoria.',
-    //         'unit_id.exists' => 'La unidad seleccionada no es válida.',
-    //         'code_sku.required' => 'El código  es obligatorio.',
-    //         'code_sku.unique' => 'El código  ya está registrado.',
-    //         'prices.array' => 'Los precios deben ser una lista.',
-    //         'prices.*.numeric' => 'Cada precio debe ser un número válido.',
-    //         'prices.*.min' => 'Cada precio debe ser mayor o igual a 0.',
-    //     ];
-
-    //     try {
-    //         $validated = $request->validate([
-    //             'description' => 'nullable|string',
-    //             'amount' => 'nullable|integer',
-    //             'model' => 'required|string',
-    //             'location' => 'nullable|string',
-    //             'warehouse_id' => 'required|exists:warehouses,id',
-    //             'brand_id' => 'required|exists:brands,id',
-    //             'unit_id' => 'required|exists:units,id',
-    //             'prices' => 'nullable|array',
-    //             'prices.*' => 'nullable|numeric|min:0',
-    //             'code_sku' => 'required|string|unique:products,code_sku',
-    //         ], $messages);
-
-    //         $validated['code'] = $this->generateCode();
-    //     } catch (ValidationValidationException $e) {
-    //         return response()->json(['errors' => $e->errors()], 422);
-    //     }
-
-    //     $product = Product::create($validated);
-    //     // Manejo de la imagen de QR
-    //     if ($request->hasFile('image')) {
-    //         $image = $request->file('image');
-    //         $imageName = time() . '_' . $image->getClientOriginalName();
-    //         $image->move(public_path('qr/products'), $imageName);
-    //         $product->bar_code = 'qr/products/' . $imageName;
-    //         $product->save();
-    //     }
-    //     if ($request->hasFile('images')) {
-    //         $images = $request->file('images');
-    //         foreach ($images as $image) {
-    //             $imageName = time() . '_' . $image->getClientOriginalName();
-    //             $image->move(public_path('images/products'), $imageName);
-
-    //             $product->images()->create([
-    //                 'image_path' => 'images/products/' . $imageName,
-    //             ]);
-    //         }
-    //     }
-    //     if ($product) {
-    //         $prices = $validated['prices'] ?? [];
-    //         $priceData = [];
-    //         foreach ($prices as $type => $price) {
-    //             if (!is_null($price)) {
-    //                 $priceData[] = [
-    //                     'product_id' => $product->id,
-    //                     'type' => $type,
-    //                     'price' => $price,
-    //                 ];
-    //             }
-    //         }
-    //         Stock::create([
-    //             'product_id' => $product->id,
-    //             'quantity' => $request->quantity,
-    //             'minimum_stock' => $request->minimum_stock,
-    //         ]);
-    //         if (!empty($priceData)) {
-    //             ProductPrice::insert($priceData);
-    //         }
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => '¡El producto ha sido registrado con éxito!',
-    //             'product' => $product
-    //         ]);
-    //     }
-
-    //     return response()->json([
-    //         'success' => false,
-    //         'message' => 'Error al registrar el producto',
-    //     ]);
-    // }
     public function store(Request $request)
     {
         $messages = [
@@ -342,15 +257,16 @@ class ProductController extends Controller
             'model.required' => 'El modelo es obligatorio.',
             'warehouse_id.required' => 'El almacén es obligatorio.',
             'warehouse_id.exists' => 'El almacén seleccionado no es válido.',
-            'brand_id.required' => 'La marca es obligatoria.',
-            'brand_id.exists' => 'La marca seleccionada no es válida.',
-            'unit_id.required' => 'La unidad es obligatoria.',
-            'unit_id.exists' => 'La unidad seleccionada no es válida.',
+            'brand.required' => 'La marca es obligatoria.',
+            'unit_name.required' => 'La unidad es obligatoria.',
             'code_sku.required' => 'El código es obligatorio.',
             'code_sku.unique' => 'El código ya está registrado.',
+            'code_bar.required' => 'El código de barra es obligatorio.',
+            'code_bar.unique' => 'El código de barra ya está registrado.',
             'prices.array' => 'Los precios deben ser una lista.',
             'prices.*.numeric' => 'Cada precio debe ser un número válido.',
             'prices.*.min' => 'Cada precio debe ser mayor o igual a 0.',
+
         ];
 
         try {
@@ -360,11 +276,12 @@ class ProductController extends Controller
                 'model' => 'required|string',
                 'location' => 'nullable|string',
                 'warehouse_id' => 'required|exists:warehouses,id',
-                'brand_id' => 'required|exists:brands,id',
-                'unit_id' => 'required|exists:units,id',
+                'brand' => 'required|string|max:255',
+                'unit_name' => 'required|string|max:255',
                 'prices' => 'nullable|array',
                 'prices.*' => 'nullable|numeric|min:0',
                 'code_sku' => 'required|string|unique:products,code_sku',
+                'code_bar' => 'required|string|unique:products,code_bar',
             ], $messages);
 
             $validated['code'] = $this->generateCode();
@@ -375,14 +292,26 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
+            // Normaliza la unidad y la crea si no existe
+            $unitName = ucfirst(strtolower(trim($request->unit_name)));
+            $unitTypeId = $this->determineUnitType($unitName);
+            $unit = Unit::firstOrCreate([
+                'name' => $unitName,
+            ], [
+                'unit_type_id' => $unitTypeId
+            ]);
+            $validated['unit_id'] = $unit->id;
+
+
+            // Normaliza la marca y la crea si no existe
+            $brandName = ucfirst(strtolower($request->brand));
+            $brand = Brand::firstOrCreate(['name' => $brandName]);
+
+            // Agregar el brand_id a los datos validados
+            $validated['brand_id'] = $brand->id;
+
             $product = Product::create($validated);
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
-                $imageName = time() . '_' . $image->getClientOriginalName();
-                $image->move(public_path('qr/products'), $imageName);
-                $product->bar_code = 'qr/products/' . $imageName;
-                $product->save();
-            }
+
             if ($request->hasFile('images')) {
                 $images = $request->file('images');
                 foreach ($images as $image) {
@@ -439,6 +368,25 @@ class ProductController extends Controller
     {
         //
     }
+    private function determineUnitType($unitName)
+    {
+        $unitTypeMappings = [
+            'Peso' => ['kilogramos', 'gramos', 'toneladas'],
+            'Volumen' => ['litros', 'mililitros', 'galones'],
+            'Cantidad' => ['unidades', 'piezas', 'cajas'],
+        ];
+
+        foreach ($unitTypeMappings as $type => $keywords) {
+            if (in_array(strtolower($unitName), $keywords)) {
+                // Busca el ID del tipo, si no existe, lo crea
+                return UnitType::firstOrCreate(['name' => $type])->id;
+            }
+        }
+
+        // Si no se encuentra un tipo, se crea "Otro" y devuelve su ID
+        return UnitType::firstOrCreate(['name' => 'Otro'])->id;
+    }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -447,11 +395,11 @@ class ProductController extends Controller
     {
         try {
             $product = Product::with('brand', 'unit', 'warehouse', 'prices')->findOrFail($id);
-            $brands = Brand::all();
+            // $brands = Brand::all();
             $units = Unit::all();
             $warehouses = Warehouse::all();
             $productStock = Stock::where('product_id', $product->id)->first();
-            return view('product.edit', compact('product', 'brands', 'units', 'warehouses', 'productStock'));
+            return view('product.edit', compact('product', 'units', 'warehouses', 'productStock'));
         } catch (\Throwable $th) {
             return redirect()->route('product.index');
         }
@@ -468,10 +416,8 @@ class ProductController extends Controller
             'model.required' => 'El modelo es obligatorio.',
             'warehouse_id.required' => 'El almacén es obligatorio.',
             'warehouse_id.exists' => 'El almacén seleccionado no es válido.',
-            'brand_id.required' => 'La marca es obligatoria.',
-            'brand_id.exists' => 'La marca seleccionada no es válida.',
-            'unit_id.required' => 'La unidad es obligatoria.',
-            'unit_id.exists' => 'La unidad seleccionada no es válida.',
+            'brand.required' => 'La marca es obligatoria.',
+            'unit_name.required' => 'La unidad es obligatoria.',
             'code_sku.required' => 'El código  es obligatorio.',
             'code_sku.unique' => 'El código  ya está registrado.',
             'prices.array' => 'Los precios deben ser una lista.',
@@ -486,11 +432,12 @@ class ProductController extends Controller
                 'model' => 'required|string',
                 'location' => 'nullable|string',
                 'warehouse_id' => 'required|exists:warehouses,id',
-                'brand_id' => 'required|exists:brands,id',
-                'unit_id' => 'required|exists:units,id',
+                'brand' => 'required|string|max:255',
+                'unit_name' => 'required|string|max:255',
                 'prices' => 'nullable|array',
                 'prices.*' => 'nullable|numeric|min:0',
                 'code_sku' => 'required|string|unique:products,code_sku,' . $id,
+                'code_bar' => 'required|string|unique:products,code_bar,' . $id,
             ], $messages);
         } catch (ValidationValidationException $e) {
             return response()->json(['errors' => $e->errors()], 500);
@@ -499,21 +446,6 @@ class ProductController extends Controller
             // Buscar el producto existente
             $product = Product::findOrFail($id);
 
-            if ($request->hasFile('bar_code')) {
-                // Eliminar imagen anterior si existe
-                if (!empty($product->bar_code) && file_exists(public_path($product->bar_code))) {
-                    unlink(public_path($product->bar_code));
-                }
-
-                // Guardar la nueva imagen
-                $image = $request->file('bar_code');
-                $imageName = time() . '_' . $image->getClientOriginalName();
-                $image->move(public_path('qr/products'), $imageName);
-                $product->bar_code = 'qr/products/' . $imageName;
-            }
-            if ($request->filled('bar_code')) {
-                $product->bar_code = $request->bar_code;
-            }
             if ($request->hasFile('new_images')) {
                 $newImages = $request->file('new_images');
 
@@ -543,8 +475,17 @@ class ProductController extends Controller
                     }
                 }
             }
-
-            // Actualizar los datos del producto
+            $unitName = ucfirst(strtolower(trim($request->unit_name)));
+            $unitTypeId = $this->determineUnitType($unitName);
+            $unit = Unit::firstOrCreate([
+                'name' => $unitName,
+            ], [
+                'unit_type_id' => $unitTypeId
+            ]);
+            $validated['unit_id'] = $unit->id;
+            $brandName = ucfirst(strtolower($request->brand));
+            $brand = Brand::firstOrCreate(['name' => $brandName]);
+            $validated['brand_id'] = $brand->id;
             $product->update($validated);
 
             // Manejar los precios

@@ -5,10 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Sale extends Model
+class Quotation extends Model
 {
     use HasFactory;
-
     protected $fillable = [
         'total_price',
         'status',
@@ -36,8 +35,8 @@ class Sale extends Model
     {
         return $this->belongsTo(User::class, 'user_register');
     }
-    public function saleItems()
+    public function quotationItems()
     {
-        return $this->hasMany(SalesItem::class, 'sale_id');
+        return $this->hasMany(QuotationItem::class, 'quotation_id');
     }
 }

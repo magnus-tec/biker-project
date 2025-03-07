@@ -5,7 +5,7 @@
     </x-slot>
     <div class="max-w-7xl  mx-auto px-4 py-12">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800">Registro de Ventas</h2>
+            <h2 class="text-2xl font-semibold text-gray-800">Registro de Cotizaciones</h2>
             <form class="flex items-center text-xs" id="formBuscarPorFecha">
                 <label for="">Desde: </label>
                 <input type="date" name="fecha_desde" id="fecha_desde"
@@ -17,7 +17,7 @@
                     Buscar
                 </button>
             </form>
-            <a href="{{ route('sales.create') }}"
+            <a href="{{ route('quotations.create') }}"
                 class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-all duration-300">
                 Agregar
             </a>
@@ -39,7 +39,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Codigo
+                            Item
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Cliente
@@ -69,7 +69,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="tbodySales">
+                <tbody class="bg-white divide-y divide-gray-200" id="tbodyQuotations">
                 </tbody>
             </table>
         </div>
@@ -79,18 +79,19 @@
         @endif --}}
     </div>
     <!-- Modal -->
-    <div id="detalleModal" class="fixed inset-0 bg-black bg-opacity-40 hidden flex justify-center items-center p-4">
+    <div id="detalleModal"
+        class="fixed inset-0 bg-black bg-opacity-40 hidden flex justify-center items-center p-4 text-xs">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
             <!-- Botón de Cierre -->
-            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-900 text-2xl">
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-900 ">
                 &times;
             </button>
 
             <!-- Encabezado -->
-            <h2 class="text-xl font-semibold text-gray-800 text-center">Detalles de la Venta</h2>
+            <h2 class="text-xl font-semibold text-gray-800 text-center">Detalles de la Cotizacion</h2>
 
             <!-- Información General -->
-            <div class="mt-4 space-y-2 text-gray-700 text-sm border-b pb-4">
+            <div class="mt-4 space-y-2 text-gray-700  border-b pb-4">
                 {{-- <p><strong>ID:</strong> <span id="ventaId"></span></p> --}}
                 <p><strong>Cliente:</strong> <span id="ventaCliente"></span></p>
                 <p><strong>DNI:</strong> <span id="ventaDni"></span></p>
@@ -102,7 +103,7 @@
             <div class="mt-4">
                 <h3 class="text-md font-semibold text-gray-700">Detalles de la Compra</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-gray-700 border border-gray-300 mt-2">
+                    <table class="w-full  text-left text-gray-700 border border-gray-300 mt-2">
                         <thead class="bg-gray-100 border-b border-gray-300">
                             <tr>
                                 <th class="py-2 px-3 border-r border-gray-300">Tipo</th>
@@ -120,12 +121,12 @@
             </div>
 
             <!-- Total -->
-            <div class="mt-4 text-right text-lg font-semibold">
-                <p>SubTotal: S/. <input type="text" id="ventaSubTotal" class="border px-2 w-20 bg-gray-200" readonly>
+            <div class="mt-4 text-right font-semibold">
+                <p>SubTotal: S/ <input type="text" id="ventaSubTotal" class="border px-2 w-20 bg-gray-200" readonly>
                 </p>
-                <p>IGV: S/. <input type="number" id="ventaIGV" value="0" step="0.01" class="border px-2 w-20"
+                <p>IGV: S/ <input type="number" id="ventaIGV" value="0" step="0.01" class="border px-2 w-20"
                         oninput="calcularSubtotal()"></p>
-                <p>Total: S/. <input type="number" id="ventaTotal" value="0" step="0.01"
+                <p>Total: S/ <input type="number" id="ventaTotal" value="0" step="0.01"
                         class="border px-2 w-20" oninput="calcularSubtotal()"></p>
             </div>
 
@@ -138,24 +139,21 @@
             </div>
         </div>
     </div>
-
-
-
-
-
-
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function finAllSales() {
+        async function venderQuotation(quotationId) {
+            location.href = `{{ route('quotations.getCotizacion', ':id') }}`.replace(':id', quotationId);
+        }
+
+        function finAllQuotations() {
             let desde = document.getElementById('fecha_desde').value;
             let hasta = document.getElementById('fecha_hasta').value;
             fetch(
-                    `{{ route('sales.filtroPorfecha') }}?fecha_desde=${encodeURIComponent(desde)}&fecha_hasta=${encodeURIComponent(hasta)}`
+                    `{{ route('quotations.filtroPorfecha') }}?fecha_desde=${encodeURIComponent(desde)}&fecha_hasta=${encodeURIComponent(hasta)}`
                 )
                 .then(response => response.json())
                 .then(data => {
-                    let tbody = document.getElementById('tbodySales');
+                    let tbody = document.getElementById('tbodyQuotations');
                     tbody.innerHTML = '';
                     if (data.length > 0) {
                         data.forEach(sale => {
@@ -183,10 +181,12 @@
                             <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                                 onclick="verDetalles(${sale.id})">Ver Detalles</button>
                             <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        onclick="deleteSale(${sale.id})">Eliminar</button>
+                        onclick="deleteQuotation(${sale.id})">Eliminar</button>
                         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                         onclick="generarPDF(${sale.id})">PDF</button>
-                        </td>
+                        <button onclick="venderQuotation(${sale.id})" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700">
+                            Vender
+                        </button>
                     `;
                             tbody.appendChild(row);
                         });
@@ -200,37 +200,38 @@
                 })
         }
         // Función para obtener los detalles de la venta
-        async function verDetalles(saleId) {
+        async function verDetalles(quotationId) {
             try {
-                let url = `{{ route('sale.detallesVenta', ':id') }}`.replace(':id', saleId);
+                let url = `{{ route('quotations.detallesQuotation', ':id') }}`.replace(':id', quotationId);
                 let response = await fetch(url);
                 let data = await response.json(); // Recibe los datos en JSON
 
                 // Insertar datos generales de la venta
                 // document.getElementById("ventaId").textContent = data.sale.id;
-                document.getElementById("ventaCliente").textContent = data.sale.customer_names_surnames;
-                document.getElementById("ventaVendedor").textContent = data.sale.user_register.name;
-                document.getElementById("ventaDni").textContent = data.sale.customer_dni;
-                document.getElementById("ventaFecha").textContent = data.sale.fecha_registro;
+                document.getElementById("ventaCliente").textContent = data.quotation.customer_names_surnames;
+                document.getElementById("ventaVendedor").textContent = data.quotation.user_register.name;
+                document.getElementById("ventaDni").textContent = data.quotation.customer_dni;
+                document.getElementById("ventaFecha").textContent = data.quotation.fecha_registro;
                 // document.getElementById("ventaTotal").textContent = parseFloat(data.sale.total_price).toFixed(2);
-                document.getElementById('ventaSubTotal').value = parseFloat(data.sale.total_price - data.sale.igv)
+                document.getElementById('ventaSubTotal').value = parseFloat(data.quotation.total_price - data.quotation
+                        .igv)
                     .toFixed(2);
-                document.getElementById('ventaIGV').value = data.sale.igv;
-                document.getElementById('ventaTotal').value = parseFloat(data.sale.total_price).toFixed(2);
+                document.getElementById('ventaIGV').value = data.quotation.igv;
+                document.getElementById('ventaTotal').value = parseFloat(data.quotation.total_price).toFixed(2);
 
                 // Limpiar la tabla antes de agregar nuevos datos
                 let listaDetalles = document.getElementById("listaDetalles");
                 listaDetalles.innerHTML = "";
 
                 // Recorrer los ítems de la venta y agregarlos a la tabla
-                data.sale.sale_items.forEach(item => {
+                data.quotation.quotation_items.forEach(item => {
                     let fila = document.createElement("tr");
                     fila.innerHTML = `
                 <td class="py-2 px-3">${item.item_type.includes("Product") ? "Producto" : "Servicio"}</td>
                 <td class="py-2 px-3">${item.item.description || item.item.name}</td>
-                <td class="py-2 px-3 text-center">${item.quantity}</td>
-                <td class="py-2 px-3 text-center">S/.${parseFloat(item.unit_price).toFixed(2)}</td>
-                <td class="py-2 px-3 text-center">S/.${(item.quantity * parseFloat(item.unit_price)).toFixed(2)}</td>
+                <td class="py-2 px-3 text-center">${item.quantity == null ? "1" : item.quantity}</td>
+                <td class="py-2 px-3 text-center">S/ ${parseFloat(item.unit_price).toFixed(2)}</td>
+                <td class="py-2 px-3 text-center">S/ ${(item.quantity * parseFloat(item.unit_price)).toFixed(2) == 0 ? parseFloat(item.unit_price).toFixed(2) : (item.quantity * parseFloat(item.unit_price)).toFixed(2)}</td>
             `;
                     listaDetalles.appendChild(fila);
                 });
@@ -241,7 +242,7 @@
                 console.error("Error obteniendo los detalles:", error);
             }
         }
-        async function deleteSale(saleId) {
+        async function deleteQuotation(quotationId) {
 
             const result = await Swal.fire({
                 title: '¿Estás seguro?',
@@ -258,7 +259,7 @@
             }
 
             try {
-                let url = `{{ route('sales.destroy', ':id') }}`.replace(':id', saleId);
+                let url = `{{ route('quotations.destroy', ':id') }}`.replace(':id', quotationId);
                 let response = await fetch(url, {
                     method: 'DELETE',
                     headers: {
@@ -269,13 +270,13 @@
                 if (response.ok) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Venta Eliminada',
-                        text: 'La venta se ha eliminado correctamente',
+                        title: 'Cotizacion Eliminada',
+                        text: 'La cotizacion se ha eliminado correctamente',
                         showConfirmButton: false,
                         timer: 2000
                     })
                     // La venta se elimino correctamente
-                    finAllSales();
+                    finAllQuotations();
                 } else {
                     console.error("Error al eliminar la venta");
                 }
@@ -283,9 +284,9 @@
                 console.error("Error al eliminar la venta:", error);
             }
         }
-        async function generarPDF(saleId) {
+        async function generarPDF(quotationId) {
             try {
-                let url = `{{ route('sales.pdf', ':id') }}`.replace(':id', saleId);
+                let url = `{{ route('quotations.pdf', ':id') }}`.replace(':id', quotationId);
                 window.open(url, '_blank');
             } catch (error) {
                 console.error("Error al generar el PDF:", error);
@@ -313,7 +314,7 @@
             fecha_hasta.value = formattedDate;
 
             if (fecha_desde && fecha_hasta) {
-                finAllSales();
+                finAllQuotations();
             }
             //fin calculo
         });

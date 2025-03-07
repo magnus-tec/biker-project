@@ -45,23 +45,8 @@
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
-                    <label for="image" class="block text-sm font-medium text-gray-700">Imagen (QR tamaño)</label>
-
-                    @if ($product->bar_code)
-                        <div class="mb-2">
-                            <img src="{{ asset($product->bar_code) }}" alt="Producto" id="current-image"
-                                class="w-16 h-16 object-contain border rounded-lg" name="bar_code_edit">
-                            <img id="preview-image" class="w-16 h-16 object-contain border rounded-lg mt-2"
-                                style="display: none;">
-
-                            <button type="button" id="remove-image"
-                                class="mt-2 px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">
-                                Eliminar Imagen
-                            </button>
-                        </div>
-                    @endif
-
-                    <input type="file" name="bar_code" id="image" accept="image/*"
+                    <label for="bar_code" class="block text-sm font-medium text-gray-700">Codigo de Barras</label>
+                    <input type="text" name="code_bar" id="code_bar" value="{{ $product->code_bar }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
 
@@ -84,7 +69,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
+                {{-- <div>
                     <label for="unit_id" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
                     <select name="unit_id" id="unit_id"
                         class="form-select block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
@@ -95,6 +80,16 @@
                             </option>
                         @endforeach
                     </select>
+                </div> --}}
+                <div class="relative">
+                    <label for="unit_name" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
+                    <input type="text" id="unit_name" name="unit_name"
+                        value="{{ old('unit_name', $product->unit->name) }}"
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm" autocomplete="off">
+                    <div id="unitDropdown"
+                        class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden">
+                        <ul id="unitSuggestions" class="max-h-40 overflow-y-auto"></ul>
+                    </div>
                 </div>
 
                 <div>
@@ -109,7 +104,7 @@
                         value="{{ isset($productStock->minimum_stock) ? $productStock->minimum_stock : '' }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
-                <div>
+                {{-- <div>
                     <label for="brand_id" class="block text-sm font-medium text-gray-700">Marca</label>
                     <select name="brand_id" id="brand_id"
                         class="form-select block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
@@ -119,7 +114,31 @@
                                 {{ $product->brand_id == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
                         @endforeach
                     </select>
+                </div> --}}
+                <div class="relative">
+                    <label for="brand" class="block font-medium text-gray-700">Marca</label>
+                    <input type="text" id="brand" name="brand"
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm" autocomplete="off"
+                        value="{{ old('brand', $product->brand->name) }}">
+
+                    <!-- Dropdown de Sugerencias -->
+                    <div id="brandDropdown"
+                        class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden">
+                        <ul id="brandSuggestions" class="max-h-40 overflow-y-auto"></ul>
+                    </div>
                 </div>
+
+                {{-- <div class="relative">
+                    <label for="unit_name" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
+                    <input type="text" id="unit_name" name="unit_name"
+                        value="{{ old('unit_name', $product->unit_name) }}"
+                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm" autocomplete="off">
+                    <div id="unitDropdown"
+                        class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden">
+                        <ul id="unitSuggestions" class="max-h-40 overflow-y-auto"></ul>
+                    </div>
+                </div> --}}
+
                 <div>
                     <label for="location" class="block text-sm font-medium text-gray-700">Ubicación</label>
                     <input type="text" name="location" id="location" value="{{ $product->location }}"
@@ -170,21 +189,7 @@
             }
         }
     });
-
     // FIN
-    document.getElementById('image').addEventListener('change', function(event) {
-        let file = event.target.files[0];
-        let previewImage = document.getElementById('preview-image');
-
-        if (file) {
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                previewImage.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-    });
     document.getElementById('remove-image')?.addEventListener('click', function() {
         let previewImage = document.getElementById('preview-image');
         let currentImage = document.getElementById('current-image');
@@ -279,4 +284,85 @@
             });
         }
     });
+    document.getElementById("unit_name").addEventListener("input", function() {
+        console.log("Evento input detectado:", this.value); // Agrega esto
+
+        const inputValue = this.value.trim();
+        const suggestionsList = document.getElementById("unitSuggestions");
+        const dropdown = document.getElementById("unitDropdown");
+        if (inputValue === "") {
+            suggestionsList.innerHTML = "";
+            dropdown.classList.add("hidden");
+            return;
+        }
+        fetch(`/units?query=${this.value}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsList.innerHTML = "";
+
+                if (data.length > 0) {
+                    data.forEach(unit => {
+                        const item = document.createElement("li");
+                        item.textContent = unit.name;
+                        item.classList.add("cursor-pointer", "p-2", "hover:bg-gray-100");
+
+                        item.addEventListener("click", function() {
+                            document.getElementById("unit_name").value = unit.name;
+                            dropdown.classList.add("hidden");
+                        });
+
+                        suggestionsList.appendChild(item);
+                    });
+
+                    dropdown.classList.remove("hidden");
+                } else {
+                    dropdown.classList.add("hidden");
+                }
+            });
+    });
+    // BUSQUEDA DE MARCA
+    document.getElementById("brand").addEventListener("input", function() {
+        const inputValue = this.value.trim();
+        const suggestionsList = document.getElementById("brandSuggestions");
+        const dropdown = document.getElementById("brandDropdown");
+        if (inputValue === "") {
+            suggestionsList.innerHTML = "";
+            dropdown.classList.add("hidden");
+            return;
+        }
+        fetch(`/api/brands?query=${this.value}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsList.innerHTML = "";
+
+                if (data.length > 0) {
+                    data.forEach(brand => {
+                        const item = document.createElement("li");
+                        item.textContent = brand.name;
+                        item.classList.add("cursor-pointer", "p-2", "hover:bg-gray-100");
+
+                        item.addEventListener("click", function() {
+                            document.getElementById("brand").value = brand.name;
+                            dropdown.classList.add("hidden");
+                        });
+
+                        suggestionsList.appendChild(item);
+                    });
+
+                    dropdown.classList.remove("hidden");
+                } else {
+                    dropdown.classList.add("hidden");
+
+                }
+            });
+    });
+    // Ocultar el dropdown cuando se hace clic fuera
+    document.addEventListener("click", function(event) {
+        const dropdown = document.getElementById("brandDropdown");
+        if (!document.getElementById("brand").contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.classList.add("hidden");
+        }
+    });
+
+    // FIN DE MARCA
 </script>

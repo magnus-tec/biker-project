@@ -3,7 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentMethod;
+use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SalesItem;
+use App\Models\Service;
+use App\Models\ServiceSale;
+use App\Models\Stock;
+use App\Models\Warehouse;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class SaleController extends Controller
@@ -15,14 +22,34 @@ class SaleController extends Controller
     {
         return view('sales.index');
     }
+    public function detallesVenta($id)
+    {
+        $sale = Sale::with('saleItems.item', 'userRegister')->find($id);
 
+        return response()->json([
+            'sale' => $sale,
+        ]);
+    }
+    public function generatePDF($id)
+    {
+        $sale = Sale::with('saleItems.item', 'userRegister')->find($id);
+        if (!$sale) {
+            return abort(404, 'Venta no encontrada');
+        }
+
+        // Si `sale_items` es null, aseguramos que sea un array vacío para evitar errores
+        $sale->sale_items = $sale->sale_items ?? [];
+        $pdf = Pdf::loadView('sales.pdf', compact('sale'));
+        return $pdf->stream('venta.pdf');
+    }
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
+        $warehouses = Warehouse::all();
         $payments = PaymentMethod::where('status', 1)->get();
-        return view('sales.create', compact('payments'));
+        return view('sales.create', compact('payments', 'warehouses'));
     }
 
     /**
@@ -31,20 +58,59 @@ class SaleController extends Controller
     public function store(Request $request)
     {
         try {
+            // 1️⃣ Crear la Venta
             $sale = Sale::create([
                 'code' => $this->generateCode(),
                 'total_price' => $request->total,
-                'fecha_registro' => $request->order_date,
                 'customer_names_surnames' => $request->customer_names_surnames,
                 'customer_dni' => $request->customer_dni,
+                'igv' => $request->igv,
             ]);
-            foreach ($request->products as $product) {
-                $sale->products()->create([
-                    'product_id' => $product['product_id'],
-                    'quantity'   => $product['quantity'],
-                    'unit_price' => $product['unit_price'],
-                ]);
+
+            // 2️⃣ Insertar Productos
+            // Insertar Productos
+            if (!empty($request->products)) {
+                foreach ($request->products as $product) {
+                    $salesItem = SalesItem::create([
+                        'sale_id'    => $sale->id,
+                        'item_type'  => Product::class,
+                        'item_id'    => $product['product_id'],
+                        'quantity'   => $product['quantity'],
+                        'unit_price' => $product['unit_price'],
+                    ]);
+
+                    // Descontar la cantidad del stock
+                    if ($salesItem) {
+                        $productId = $product['product_id'];
+                        $quantity = $product['quantity'];
+
+                        // Actualizar el stock
+                        $stock = Stock::where('product_id', $productId)->first();
+                        if ($stock) {
+                            $stock->quantity -= $quantity;
+                            $stock->save();
+                        }
+                    }
+                }
             }
+
+            // Insertar Servicios
+            if (!empty($request->services)) {
+                foreach ($request->services as $service) {
+                    $serviceModel = ServiceSale::firstOrCreate(
+                        ['name' => ucfirst(strtolower($service['name']))],
+                        ['default_price' => $service['price']]
+                    );
+                    SalesItem::create([
+                        'sale_id'    => $sale->id,
+                        'item_type'  => ServiceSale::class, // 🔹 Verifica que ServiceSale::class devuelve el FQCN correcto
+                        'item_id'    => $serviceModel->id,
+                        'quantity'   => 1,
+                        'unit_price' => $service['price'],
+                    ]);
+                }
+            }
+
             if ($sale) {
                 return response()->json(['success' => 'Venta creada correctamente'], 200);
             }
@@ -82,7 +148,30 @@ class SaleController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $sale = Sale::find($id);
+
+            if (!$sale) {
+                return response()->json(['error' => 'Venta no encontrada'], 404);
+            }
+
+            // Obtener los productos asociados a la venta
+            $salesItems = SalesItem::where('sale_id', $sale->id)->get();
+
+            foreach ($salesItems as $salesItem) {
+                if ($salesItem->item_type === Product::class) {
+                    $stock = Stock::where('product_id', $salesItem->item_id)->first();
+                    if ($stock) {
+                        $stock->quantity += $salesItem->quantity; // Revertir la reducción del stock
+                        $stock->save();
+                    }
+                }
+            }
+            $sale->delete();
+            return response()->json(['success' => 'Venta eliminada correctamente'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
     public function filtroPorfecha(Request $request)
     {

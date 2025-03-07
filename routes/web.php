@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\UnitController;
 use App\Models\Product;
-use App\Models\ProductImage;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -76,8 +78,20 @@ Route::group(
             Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
         });
         //VENTAS
-        Route::resource('sales',  App\Http\Controllers\SaleController::class);
-        Route::get('/sale/listado', [App\Http\Controllers\SaleController::class, 'filtroPorfecha'])->name('sales.filtroPorfecha');
+        Route::resource('sales',  SaleController::class);
+        Route::get('/sale/listado', [SaleController::class, 'filtroPorfecha'])->name('sales.filtroPorfecha');
+        Route::get('/sale/detalles/{id}', [SaleController::class, 'detallesVenta'])->name('sale.detallesVenta');
+        Route::get('/sale/pdf/{id}', [SaleController::class, 'generatePDF'])->name('sales.pdf');
+        //UNIDAD MEDIDA
+        Route::resource('units',  App\Http\Controllers\UnitController::class);
+        Route::get('/units', [UnitController::class, 'search']);
+        // COTIZACIONES
+        Route::resource('quotations', QuotationController::class);
+        Route::get('/quotation/listado', [QuotationController::class, 'filtroPorfecha'])->name('quotations.filtroPorfecha');
+        Route::get('/quotation/detalles/{id}', [QuotationController::class, 'detallesQuotation'])->name('quotations.detallesQuotation');
+        Route::get('/quotation/pdf/{id}', [QuotationController::class, 'generatePDF'])->name('quotations.pdf');
+        Route::get('/quotation/cotizacion/vender/{id}', [QuotationController::class, 'show'])->name('quotations.vender');
+        Route::get('/quotation/cotizacion/{id}', [QuotationController::class, 'getCotizacion'])->name('quotations.getCotizacion');
     }
 );
 require __DIR__ . '/auth.php';
