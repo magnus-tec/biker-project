@@ -19,13 +19,18 @@ return new class extends Migration
             $table->string('customer_names_surnames')->nullable();
             $table->decimal('total_price', 10, 2);
             $table->decimal('igv', 10, 2);
-            $table->string('status')->default('1');
+            $table->string('serie');
+            $table->string('number');
+            $table->string('observation')->nullable();
+            $table->string('address')->nullable();
+            $table->foreignId('quotation_id')->constrained('quotations')->onDelete('cascade');
             $table->unsignedBigInteger('user_register')->nullable();
             $table->foreign('user_register')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('user_update')->nullable();
             $table->foreign('user_update')->references('id')->on('users')->onDelete('cascade');
             $table->timestamp('fecha_registro')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
             $table->timestamp('fecha_actualizacion')->default(DB::raw('CURRENT_TIMESTAMP'))->onUpdate(DB::raw('CURRENT_TIMESTAMP'));
+            $table->string('status')->default('1');
             $table->timestamps();
         });
     }

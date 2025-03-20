@@ -18,7 +18,10 @@ class Quotation extends Model
         'customer_dni',
         'customer_names_surnames',
         'code',
-        'igv'
+        'igv',
+        'status_sale',
+        'document_type_id'
+
     ];
 
 

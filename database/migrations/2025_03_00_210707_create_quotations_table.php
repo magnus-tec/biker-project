@@ -20,6 +20,9 @@ return new class extends Migration
             $table->decimal('total_price', 10, 2);
             $table->decimal('igv', 10, 2);
             $table->string('status')->default('1');
+            $table->string('status_sale')->default('0');
+            $table->unsignedBigInteger('document_type_id')->nullable();
+            $table->foreign('document_type_id')->references('id')->on('document_types')->onDelete('cascade');
             $table->unsignedBigInteger('user_register')->nullable();
             $table->foreign('user_register')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('user_update')->nullable();

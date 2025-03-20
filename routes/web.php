@@ -90,8 +90,7 @@ Route::group(
         Route::get('/quotation/listado', [QuotationController::class, 'filtroPorfecha'])->name('quotations.filtroPorfecha');
         Route::get('/quotation/detalles/{id}', [QuotationController::class, 'detallesQuotation'])->name('quotations.detallesQuotation');
         Route::get('/quotation/pdf/{id}', [QuotationController::class, 'generatePDF'])->name('quotations.pdf');
-        Route::get('/quotation/cotizacion/vender/{id}', [QuotationController::class, 'show'])->name('quotations.vender');
-        Route::get('/quotation/cotizacion/{id}', [QuotationController::class, 'getCotizacion'])->name('quotations.getCotizacion');
+        Route::post('/quotation/cotizacion/vender/{id}', [QuotationController::class, 'vender'])->name('quotations.vender');
     }
 );
 require __DIR__ . '/auth.php';

@@ -19,7 +19,10 @@ class Sale extends Model
         'customer_dni',
         'customer_names_surnames',
         'code',
-        'igv'
+        'igv',
+        'quotation_id',
+        'serie',
+        'number',
     ];
 
 
@@ -39,5 +42,9 @@ class Sale extends Model
     public function saleItems()
     {
         return $this->hasMany(SalesItem::class, 'sale_id');
+    }
+    public function quotation()
+    {
+        return $this->belongsTo(Quotation::class);
     }
 }

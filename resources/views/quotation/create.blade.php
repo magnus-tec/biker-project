@@ -15,7 +15,8 @@
                     class="w-full p-2 border rounded mb-2">
 
                 <!-- Botón que abre el modal -->
-                <button class="bg-yellow-400 p-2 rounded" id="openModal">Consultar Productos</button>
+                <button class="bg-yellow-400 p-2 rounded" id="buscarProductos">Consultar
+                    Productos</button>
                 <div class="relative">
                     <label for="service" class="block font-medium text-gray-700">Servicio</label>
                     <input type="text" id="service" name="service"
@@ -38,7 +39,7 @@
                     Servicio</button>
 
                 <!-- Modal -->
-                <div id="modal"
+                <div id="buscarProductosModal"
                     class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 hidden">
                     <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full">
                         <h3 class="text-lg font-bold mb-4">Productos</h3>
@@ -90,7 +91,8 @@
                         </div>
 
                         <!-- Botón de cerrar modal -->
-                        <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded" id="closeModal">Cerrar</button>
+                        <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+                            onclick="closeModal('buscarProductosModal')">Cerrar</button>
                     </div>
                 </div>
             </div>
@@ -98,12 +100,32 @@
             <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-lg font-bold mb-4">Documento</h2>
                 <div>
+                    <label class="font-bold">RUC </label>
+                    <!-- Se agrega id para capturar el valor -->
+                    <select id="ruc" class="w-full p-2 border rounded">
+                        <option value="">Seleccione</option>
+                        <option value="1">SAGA FALABELLA S A -20100128056 </option>
+                        <option value="2">TURISMO TITANIC S.A -20301040301 </option>
+                        <option value="3">Biker S.A -20606806184 </option>
+                    </select>
+                </div>
+                <div>
                     <label class="font-bold">Tipo pago</label>
                     <!-- Se agrega id para capturar el valor -->
                     <select id="paymentType" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
                         @foreach ($payments as $payment)
                             <option value="{{ $payment->id }}">{{ $payment->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="font-bold">Tipo de documento</label>
+                    <!-- Se agrega id para capturar el valor -->
+                    <select id="documentType" class="w-full p-2 border rounded">
+                        <option value="">Seleccione</option>
+                        @foreach ($documentTypes as $documentType)
+                            <option value="{{ $documentType->id }}">{{ $documentType->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -127,7 +149,7 @@
                 </div>
                 <div class="mt-4">
                     <!-- Botón para guardar la orden -->
-                    <button id="saveOrder" class="bg-blue-500 text-white p-2 rounded">Guardar</button>
+                    <button id="save" class="bg-blue-500 text-white p-2 rounded">Guardar</button>
                 </div>
             </div>
         </div>
@@ -179,22 +201,9 @@
     let orderCount = 0; // para numerar los ítems
     let allProducts = []; // Todos los productos obtenidos de la API
     let products = []; // Productos disponibles en el modal
-    const openModalBtn = document.getElementById("openModal");
-    const closeModalBtn = document.getElementById("closeModal");
-    // Variables del modal y productos
-    const modal = document.getElementById("modal");
+    const agregarButtons = document.querySelectorAll(".agregar-btn");
     const searchInput = document.getElementById("searchProduct");
-    const btnBuscarProduct = document.getElementById("btnBuscarProduct");
-    const productTable = document.getElementById("productTable");
 
-    // Variables de la tabla de pedido
-    const orderTableBody = document.getElementById("orderTableBody");
-
-    // Variables de los datos de la orden
-    const paymentTypeSelect = document.getElementById("paymentType");
-    const orderDateInput = document.getElementById("orderDate");
-    const orderCurrencyInput = document.getElementById("orderCurrency");
-    const saveOrderBtn = document.getElementById("saveOrder");
     /// AGREGANDO SERVICIOS
     document.getElementById("addService").addEventListener("click", function() {
         let serviceName = document.getElementById("service").value.trim();
@@ -238,7 +247,7 @@
                 <td class="border p-2">
                     <select class="p-2 border rounded order-price" data-product-id="${product.id}" style="width: 120px;">
                         <option value="">Seleccionar precio</option>
-                        ${product.prices.map(price => `<option value="${price.price}" ${price.price == product.selectedPrice ? 'selected' : ''}>${price.type} - ${price.price}</option>`).join('')}
+                        ${product.prices.map(price => `<option value="${price.price}" data-price-id="${price.id}" ${price.price == product.selectedPrice ? 'selected' : ''}>${price.type} - ${price.price}</option>`).join('')}
                     </select>
                 </td>
                 <td class="border p-2 order-total" style="text-align: right;">0.00</td>
@@ -273,7 +282,7 @@
             // Reinsertar el producto eliminado en el listado del modal
             const productToRestore = allProducts.find(p => p.id == prodId);
             if (productToRestore) {
-                if (!products.find(p => p.id == prodId)) {
+                if (!products.find(product => product.id == prodId)) {
                     products.push(productToRestore);
                     products.sort((a, b) => a.id - b.id);
                     renderProducts(products);
@@ -289,7 +298,7 @@
         });
     }
 
-    // Función para actualizar la tabla
+    // Función para actualizar la tabla de servicios
     function updateTable() {
         let tableBody = document.getElementById("serviceList");
         tableBody.innerHTML = ""; // Limpiar tabla antes de actualizar
@@ -307,14 +316,14 @@
         });
     }
 
-    // Función para eliminar un servicio
+    // // Función para eliminar un servicio
     function deleteService(id) {
         services = services.filter(service => service.id !== id); // Elimina del array
         updateTable(); // Refrescar la tabla
         updateTotalAmount();
     }
-    // FIN DE AGREGAR SERVICIO
-    // BUSQUEDA DE SERVICIOS
+    // // FIN DE AGREGAR SERVICIO
+    // // BUSQUEDA DE SERVICIOS
     document.getElementById("service").addEventListener("input", function() {
         const inputValue = this.value.trim();
         const suggestionsList = document.getElementById("serviceSuggestions");
@@ -353,7 +362,7 @@
                 }
             });
     });
-    // Actualiza el total general de la orden
+    // // Actualiza el total general de la orden
     function updateTotalAmount() {
         let subtotalTotal = 0;
         let total = 0;
@@ -371,7 +380,7 @@
         document.getElementById("igvAmount").textContent = "S/ " + igv.toFixed(2);
         totalAmountEl.textContent = "S/ " + subtotalTotal.toFixed(2);
     }
-    // Actualiza el subtotal de un renglón en la tabla de pedido
+    // // Actualiza el subtotal de un renglón en la tabla de pedido
     function updateOrderRow(row) {
         const qty = parseFloat(row.querySelector(".order-quantity").value) || 0;
         const price = parseFloat(row.querySelector(".order-price").value) || 0;
@@ -379,22 +388,32 @@
         row.querySelector(".order-total").textContent = subtotal.toFixed(2);
         row.querySelector(".order-subtotal").textContent = subtotal.toFixed(2);
     }
-    // FIN DE BUSQUEDA DE SERVICIOS
-    // FIN DE GUARDANDO TODOS LOS SERVICIOS EN UN ARRAY
-    // Abrir y cerrar modal
-    openModalBtn.addEventListener("click", () => {
-        modal.classList.remove("hidden");
-        // Si no hay productos cargados aún, se consultan de la API
-        if (allProducts.length === 0) {
-            fetchProducts();
-        } else {
-            renderProducts(products);
+
+    function openModal(modalId, callback) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove("hidden");
+            if (callback) callback();
         }
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add("hidden");
+        }
+    }
+    document.getElementById("buscarProductos").addEventListener("click", () => {
+        openModal("buscarProductosModal", () => {
+            if (allProducts.length === 0) {
+                fetchProducts();
+            } else {
+                renderProducts(products);
+            }
+        });
     });
-    closeModalBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
-    btnBuscarProduct.addEventListener("click", () => {
+
+    document.getElementById("btnBuscarProduct").addEventListener("click", () => {
         fetchProducts();
     })
 
@@ -416,14 +435,14 @@
             })
             .catch(error => console.error('Error:', error));
     }
-    // Filtrar productos según el término de búsqueda
-    function filterProducts(query) {
-        const filtered = products.filter(product =>
-            product.description.toLowerCase().includes(query.toLowerCase())
-        );
-        renderProducts(filtered);
-    }
-    // Renderiza la lista de productos en el modal
+    // // Filtrar productos según el término de búsqueda
+    // function filterProducts(query) {
+    //     const filtered = products.filter(product =>
+    //         product.description.toLowerCase().includes(query.toLowerCase())
+    //     );
+    //     renderProducts(filtered);
+    // }
+    // // Renderiza la lista de productos en el modal
     function renderProducts(productList) {
         productTable.innerHTML = "";
         productList.forEach(product => {
@@ -440,12 +459,12 @@
                     <td class="px-2 py-1 border">
                         <select class="p-2 border rounded price-select" data-product-id="${product.id}">
                             <option value="">Seleccionar precio</option>
-                            ${product.prices.map(price => `<option value="${price.price}">${price.type} - ${price.price}</option>`).join('')}
+                            ${product.prices.map(price => `<option value="${price.price}" data-price-id="${price.id}">${price.type} - ${price.price}</option>`).join('')}
                         </select>
                     </td>
                     <td class="px-2 py-1 border subtotal-cell" id="subtotal-${product.id}">0</td>
                     <td class="px-2 py-1 border">
-                        <button class="bg-blue-500 text-white px-3 py-1 rounded agregar-btn" data-product-id="${product.id}">Agregar</button>
+                        <button class="bg-blue-500 text-white px-3 py-1 rounded" data-product-id="${product.id}"  onclick="agregarProducto(this)">Agregar</button>
                     </td>
                 `;
             productTable.appendChild(row);
@@ -459,29 +478,28 @@
                 priceSelect));
         });
 
-        // Asignar evento "Agregar" a cada botón
-        const agregarButtons = document.querySelectorAll(".agregar-btn");
-        agregarButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                const prodId = btn.getAttribute("data-product-id");
-                const product = products.find(p => p.id == prodId);
-                if (product) {
-                    const row = btn.closest("tr");
-                    const qtyInput = row.querySelector(".quantity-input");
-                    const priceSelect = row.querySelector(".price-select");
-                    const quantity = parseInt(qtyInput.value) || 1;
-                    const price = parseFloat(priceSelect.value) || 0;
-                    product.selectedQuantity = quantity;
-                    product.selectedPrice = price;
-                    addProductToOrder(product);
 
-                    // Remover el producto agregado del listado para evitar duplicados
-                    products = products.filter(p => p.id != prodId);
-                    renderProducts(products);
-                }
-            });
-        });
     }
+
+    function agregarProducto(btn) {
+        const productoId = btn.getAttribute("data-product-id");
+        const product = products.find(product => product.id == productoId);
+        if (product) {
+            const row = btn.closest("tr");
+            const qtyInput = row.querySelector(".quantity-input");
+            const priceSelect = row.querySelector(".price-select");
+            const quantity = parseInt(qtyInput.value) || 1;
+            const price = parseFloat(priceSelect.value) || 0;
+            const idPrice = row.getAttribute("data-product-id");
+            product.selectedQuantity = quantity;
+            product.selectedPrice = price;
+            addProductToOrder(product);
+            products = products.filter(product => product.id != productoId);
+            // renderProducts(products);
+            row.style.display = "none";
+        }
+    }
+
     // Calcula y actualiza el subtotal en el modal para un producto
     function updateModalSubtotal(productId, qtyInput, priceSelect) {
         const quantity = parseInt(qtyInput.value) || 0;
@@ -492,74 +510,74 @@
             subtotalEl.textContent = subtotal.toFixed(2);
         }
     }
-    // Guardar la orden: recopilar datos y enviar mediante fetch
-    saveOrderBtn.addEventListener("click", () => {
-        // Recopilar datos de la orden
-        const customer_dni = document.getElementById("dni_personal").value;
-        const customer_names_surnames = document.getElementById("nombres_apellidos").value;
-        const paymentType = paymentTypeSelect.value;
-        const orderDate = orderDateInput.value;
-        const currency = orderCurrencyInput.value;
-        const igv = parseFloat(document.getElementById("igvAmount").textContent.replace("S/ ", "")) || 0;
-        const totalText = totalAmountEl.textContent.replace("S/ ", "");
-        const total = parseFloat(totalText) || 0;
+    //  Guardar la cotizacion
+    document.getElementById("save").addEventListener("click", async () => {
+        try {
+            const orderData = buildOrderData();
 
-        // Recopilar los productos de la orden
-        const orderRows = orderTableBody.querySelectorAll("tr[data-product-id]");
-        let orderProducts = [];
-        orderRows.forEach(row => {
-            const productId = row.getAttribute("data-product-id");
-            const quantity = parseFloat(row.querySelector(".order-quantity").value) || 0;
-            const unitPrice = parseFloat(row.querySelector(".order-price").value) || 0;
-            const subtotal = parseFloat(row.querySelector(".order-subtotal").textContent) ||
-                0;
-            orderProducts.push({
-                product_id: productId,
-                quantity,
-                unit_price: unitPrice,
-                subtotal
-            });
-        });
-
-        // Construir el objeto a enviar
-        const orderData = {
-            customer_dni,
-            customer_names_surnames,
-            payment_type: paymentType,
-            order_date: orderDate,
-            currency,
-            total,
-            igv,
-            products: orderProducts,
-            services: services
-        };
-
-        // Enviar a "products.store" mediante fetch (POST)
-        fetch('{{ route('quotations.store') }}', {
+            const response = await fetch('{{ route('quotations.store') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify(orderData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Error en la petición");
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Manejar la respuesta, por ejemplo, redireccionar o mostrar un mensaje
-                console.log("Orden guardada:", data);
-                alert("La cotizacion se ha guardado correctamente.");
-                // location.reload();
-            })
-            .catch(error => {
-                console.error("Error al guardar la orden:", error);
-                alert("Error al guardar la orden.");
             });
+
+            if (!response.ok) throw new Error("Error en la petición");
+
+            const data = await response.json();
+            console.log("Orden guardada:", data);
+            alert("La cotización se ha guardado correctamente.");
+        } catch (error) {
+            console.error("Error al guardar la orden:", error);
+            alert("Error al guardar la orden.");
+        }
     });
+
+    // 🔹 Función para construir el objeto de orden
+    function buildOrderData() {
+        return {
+            ...getCustomerData(),
+            products: getOrderProducts(),
+            services: services
+        };
+    }
+
+    // Extraer los datos del cliente
+    function getCustomerData() {
+        return {
+            customer_dni: document.getElementById("dni_personal").value.trim(),
+            customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
+            payment_type: document.getElementById("paymentType").value,
+            order_date: document.getElementById("orderDate").value,
+            currency: document.getElementById("orderCurrency").value,
+            document_type: document.getElementById("documentType").value,
+            igv: parseAmount("igvAmount"),
+            total: parseAmount("totalAmount")
+        };
+    }
+
+    //  Extraer los productos de la tabla
+    function getOrderProducts() {
+        const selectElement = document.querySelector('.order-price');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const selectedPriceId = selectedOption.getAttribute('data-price-id');
+        console.log(selectedPriceId);
+
+        return Array.from(document.querySelectorAll("#orderTableBody tr[data-product-id]")).map(row => ({
+            product_id: row.getAttribute("data-product-id"),
+            quantity: parseFloat(row.querySelector(".order-quantity").value) || 0,
+            unit_price: parseFloat(row.querySelector(".order-price").value) || 0,
+            subtotal: parseFloat(row.querySelector(".order-subtotal").textContent) || 0,
+            priceId: selectedPriceId
+        }));
+    }
+
+    // Convierte valores monetarios a números
+    function parseAmount(elementId) {
+        return parseFloat(document.getElementById(elementId).textContent.replace("S/ ", "")) || 0;
+    }
     // api dni
     const inputDni = document.getElementById('dni_personal');
     const token =

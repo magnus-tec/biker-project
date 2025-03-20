@@ -16,6 +16,7 @@ class QuotationItem extends Model
         'unit_price',
         'item_type',
         'item_name',
+        'product_prices_id'
     ];
 
     public function quotation()

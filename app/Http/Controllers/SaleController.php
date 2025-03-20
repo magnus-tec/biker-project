@@ -47,9 +47,7 @@ class SaleController extends Controller
      */
     public function create()
     {
-        $warehouses = Warehouse::all();
-        $payments = PaymentMethod::where('status', 1)->get();
-        return view('sales.create', compact('payments', 'warehouses'));
+        //
     }
 
     /**

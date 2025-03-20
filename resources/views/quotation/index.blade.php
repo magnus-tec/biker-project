@@ -142,8 +142,37 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         async function venderQuotation(quotationId) {
-            location.href = `{{ route('quotations.getCotizacion', ':id') }}`.replace(':id', quotationId);
+
+            try {
+                const response = await fetch(`{{ route('quotations.vender', ':id') }}`.replace(':id', quotationId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content')
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al intentar vender la cotización');
+
+                }
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Venta Realizada',
+                    text: response.success,
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                finAllQuotations();
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
+
+        document.getElementById('formBuscarPorFecha').addEventListener('submit', function(event) {
+            event.preventDefault();
+            finAllQuotations();
+        })
 
         function finAllQuotations() {
             let desde = document.getElementById('fecha_desde').value;
@@ -180,12 +209,14 @@
                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                                 onclick="verDetalles(${sale.id})">Ver Detalles</button>
+                                <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
+                                onclick="editQuotation(${sale.id})">Editar</button>
                             <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                         onclick="deleteQuotation(${sale.id})">Eliminar</button>
                         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                         onclick="generarPDF(${sale.id})">PDF</button>
-                        <button onclick="venderQuotation(${sale.id})" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700">
-                            Vender
+                        <button onclick="venderQuotation(${sale.id})" class=" ${sale.status_sale == '0' ? 'bg-yellow-500' : 'bg-blue-500'} text-white px-2 py-1 rounded "  ${sale.status_sale == '0' ? '' : 'disabled'}>
+                            ${sale.status_sale == '0' ? 'Vender' : 'Vendido'} 
                         </button>
                     `;
                             tbody.appendChild(row);
@@ -241,6 +272,10 @@
             } catch (error) {
                 console.error("Error obteniendo los detalles:", error);
             }
+        }
+        async function editQuotation(quotationId) {
+            let url = `{{ route('quotations.edit', ':id') }}`.replace(':id', quotationId);
+            window.location.href = url;
         }
         async function deleteQuotation(quotationId) {
 
