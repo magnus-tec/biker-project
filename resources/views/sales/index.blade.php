@@ -17,10 +17,10 @@
                     Buscar
                 </button>
             </form>
-            {{-- <a href="{{ route('sales.create') }}"
+            <a href="{{ route('sales.create') }}"
                 class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-all duration-300">
                 Agregar
-            </a> --}}
+            </a>
         </div>
         <!-- Mensajes de éxito o error -->
         @if (session('success'))

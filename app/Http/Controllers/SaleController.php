@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DocumentType;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Sale;
@@ -47,7 +48,10 @@ class SaleController extends Controller
      */
     public function create()
     {
-        //
+        $warehouses = Warehouse::all();
+        $payments = PaymentMethod::where('status', 1)->get();
+        $documentTypes = DocumentType::whereIn('name', ['FACTURA', 'BOLETA DE VENTA', 'NOTA DE VENTA'])->get();
+        return view('sales.create', compact('warehouses', 'payments', 'documentTypes'));
     }
 
     /**
@@ -63,6 +67,8 @@ class SaleController extends Controller
                 'customer_names_surnames' => $request->customer_names_surnames,
                 'customer_dni' => $request->customer_dni,
                 'igv' => $request->igv,
+                'serie' => $this->generateSerie($request->document_type_id),
+                'number' => $this->generateNumero($request->document_type_id),
             ]);
 
             // 2️⃣ Insertar Productos
@@ -187,5 +193,51 @@ class SaleController extends Controller
         $lastCodigo = Sale::max('code') ?? '0000000';
         $nextCodigo = intval($lastCodigo) + 1;
         return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
+    }
+    private function generateSerie($documentTypeId)
+    {
+        $documentTypeId = (int) $documentTypeId; // Convertir a entero
+
+        $tipoDocumento = DocumentType::find($documentTypeId);
+
+        if (!$tipoDocumento) {
+            throw new \Exception('Tipo de documento no encontrado');
+        }
+
+        $prefijos = [
+            'FACTURA' => 'F',
+            'BOLETA DE VENTA' => 'B',
+            'NOTA DE VENTA' => 'NV',
+        ];
+
+        if (!isset($prefijos[$tipoDocumento->name])) {
+            throw new \Exception('Tipo de documento no válido');
+        }
+
+        // FACTURA y BOLETA DE VENTA usan tres dígitos (F001, B001), NOTA DE VENTA usa dos (NV01)
+        $numeroSerie = ($tipoDocumento->name === 'NOTA DE VENTA') ? '01' : '001';
+
+        return $prefijos[$tipoDocumento->name] . $numeroSerie;
+    }
+
+    private function generateNumero($documentTypeId)
+    {
+        $documentTypeId = (int) $documentTypeId; // Convertir a entero
+
+        if ($documentTypeId <= 0) {
+            throw new \Exception('ID de documento no válido');
+        }
+
+        // Buscar la última venta con este tipo de documento
+        $ultimaVenta = Sale::whereHas('quotation', function ($query) use ($documentTypeId) {
+            $query->where('document_type_id', $documentTypeId);
+        })
+            ->latest('number')
+            ->first();
+
+        // Generar el nuevo número
+        $nuevoNumero = $ultimaVenta ? (int) $ultimaVenta->number + 1 : 1;
+
+        return str_pad((string) $nuevoNumero, 4, '0', STR_PAD_LEFT); // 0001, 0002, 0003...
     }
 }

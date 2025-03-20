@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('number');
             $table->string('observation')->nullable();
             $table->string('address')->nullable();
-            $table->foreignId('quotation_id')->constrained('quotations')->onDelete('cascade');
+            $table->foreignId('quotation_id')->nullable()->constrained('quotations')->onDelete('cascade');
             $table->unsignedBigInteger('user_register')->nullable();
             $table->foreign('user_register')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('user_update')->nullable();
