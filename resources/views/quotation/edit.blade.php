@@ -121,9 +121,9 @@
                         @endforeach
                     </select>
                 </div>
-                <label>Fecha</label>
+                {{-- <label>Fecha</label>
                 <!-- Se agrega id para la fecha -->
-                <input type="date" id="orderDate" class="w-full p-2 border rounded mb-4">
+                <input type="date" id="orderDate" class="w-full p-2 border rounded mb-4"> --}}
                 <label>Moneda</label>
                 <!-- Si la moneda es fija, también se puede capturar -->
                 <input type="text" id="orderCurrency" value="SOLES" class="w-full p-2 border rounded mb-4">
@@ -215,18 +215,18 @@
 
         services.push(newService); // Agregar al array
         updateTable(); // Refrescar la tabla
-
+        updateTotalAmount();
+        updateInformationCalculos();
+        console.log('servicesAdd', services);
         // Limpiar inputs
         document.getElementById("service").value = "";
         document.getElementById("service_price").value = "";
-        updateTotalAmount();
     });
 
     // Función para actualizar la tabla de servicios
     function updateTable() {
         let tableBody = document.getElementById("serviceList");
-        tableBody.innerHTML = ""; // Limpiar tabla antes de actualizar
-
+        tableBody.innerHTML = "";
         services.forEach(service => {
             let row = document.createElement("tr");
             row.innerHTML = `
@@ -238,6 +238,7 @@
                 `;
             tableBody.appendChild(row);
         });
+
     }
 
     // Función para eliminar un servicio
@@ -245,6 +246,8 @@
         services = services.filter(service => service.id !== id); // Elimina del array
         updateTable(); // Refrescar la tabla
         updateTotalAmount();
+        updateInformationCalculos();
+
     }
 
     document.getElementById("service").addEventListener("input", function() {
@@ -303,8 +306,8 @@
                 .customer_names_surnames;
             document.getElementById("dni_personal").value = responseQuotation.quotation.customer_dni;
             console.log('responseQuotation', responseQuotation);
-            document.getElementById("orderDate").value = responseQuotation.quotation.fecha_registro.split(
-                " ")[0];
+            // document.getElementById("orderDate").value = responseQuotation.quotation.fecha_registro.split(
+            //     " ")[0];
             document.getElementById("documentType").value = responseQuotation.quotation.document_type_id;
             document.getElementById("paymentType").value = responseQuotation.quotation.payment_method_id;
             quotationItems = responseQuotation.quotation.quotation_items
@@ -350,6 +353,9 @@
             subtotalElement.textContent = subtotal.toFixed(2);
         }
     }
+    document.getElementById("btnBuscarProduct").addEventListener("click", () => {
+        fetchProducts();
+    })
 
     function addProductTo(product) {
         const emptyRow = document.getElementById("emptyRow");
@@ -526,9 +532,15 @@
         let totalAmount = 0;
         let igvAmount = 0;
         let subtotalAmount = 0;
+        console.log('quotationItemsUpdate', quotationItems);
+        console.log('servicesUpdate', services);
+
         quotationItems.forEach(item => {
             totalAmount += item.quantity * item.unit_price;
         })
+        services.forEach(item => {
+            totalAmount += parseFloat(item.price);
+        });
         igvAmount = totalAmount * 0.18;
         subtotalAmount = totalAmount - igvAmount;
         document.getElementById("subtotalAmount").textContent = "S/ " + subtotalAmount.toFixed(2);
@@ -565,6 +577,8 @@
                 item.priceId = parseFloat(selectedOption.dataset.priceId);
             }
         })
+
+        updateInformationCalculos();
     }
 
     function addProductToOrderEdited(products) {
@@ -616,6 +630,7 @@
         `;
 
             orderTableBody.appendChild(orderRow);
+            updateInformationCalculos();
 
         });
     }
@@ -633,7 +648,7 @@
             customer_dni: document.getElementById("dni_personal").value.trim(),
             customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
             payment_method_id: document.getElementById("paymentType").value,
-            order_date: document.getElementById("orderDate").value,
+            // order_date: document.getElementById("orderDate").value,
             currency: document.getElementById("orderCurrency").value,
             document_type: document.getElementById("documentType").value,
             igv: parseAmount("igvAmount"),

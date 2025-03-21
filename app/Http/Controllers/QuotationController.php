@@ -277,7 +277,8 @@ class QuotationController extends Controller
                 'igv' => $request->igv,
                 'document_type_id' => $request->document_type,
                 'payment_method_id' => $request->payment_method_id,
-
+                'fecha_actualizacion' => now()->setTimezone('America/Lima'),
+                'user_update' => auth()->user()->id
             ]);
 
             // 3️⃣ Eliminar productos y servicios actuales (para una actualización limpia)
