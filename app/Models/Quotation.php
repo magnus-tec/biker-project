@@ -20,8 +20,8 @@ class Quotation extends Model
         'code',
         'igv',
         'status_sale',
-        'document_type_id'
-
+        'document_type_id',
+        'payment_method_id'
     ];
 
 

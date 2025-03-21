@@ -114,6 +114,7 @@ class QuotationController extends Controller
                 'customer_dni' => $request->customer_dni,
                 'igv' => $request->igv,
                 'document_type_id' => $request->document_type,
+                'payment_method_id' => $request->payment_method_id,
             ]);
 
             // 2️⃣ Insertar Productos
@@ -123,7 +124,7 @@ class QuotationController extends Controller
                     $quotationItem = QuotationItem::create([
                         'quotation_id'    => $quotation->id,
                         'item_type'  => Product::class,
-                        'item_id'    => $product['product_id'],
+                        'item_id'    => $product['item_id'],
                         'quantity'   => $product['quantity'],
                         'unit_price' => $product['unit_price'],
                         'product_prices_id' => $product['priceId']
@@ -275,6 +276,8 @@ class QuotationController extends Controller
                 'customer_dni' => $request->customer_dni,
                 'igv' => $request->igv,
                 'document_type_id' => $request->document_type,
+                'payment_method_id' => $request->payment_method_id,
+
             ]);
 
             // 3️⃣ Eliminar productos y servicios actuales (para una actualización limpia)

@@ -205,15 +205,14 @@ class ProductController extends Controller
     }
     public function import(Request $request)
     {
-        // dd($request->file('importFile'));
         // Validar que el archivo sea correcto
         $request->validate([
             'importFile' => 'required|mimes:xlsx,csv',
         ]);
 
         try {
-            // return response()->json($request);
             Excel::import(new ProductsImport(auth()->id()), $request->file('importFile'));
+            // dd($request->file('importFile'));
 
             return response()->json([
                 'success' => true,

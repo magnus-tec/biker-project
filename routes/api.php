@@ -25,9 +25,9 @@ Route::get('/product', function (Request $request) {
     $almacen = $request->input('almacen');
     $query = $request->input('search');
     if ($almacen !== 'todos') {
-        $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'images', 'stock')->where('description', 'like', "%{$query}%")->where('warehouse_id', $almacen)->get();
+        $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'stock')->where('description', 'like', "%{$query}%")->where('warehouse_id', $almacen)->get();
     } else {
-        $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'images', 'stock')->where('description', 'like', "%{$query}%")->get();
+        $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'stock')->where('description', 'like', "%{$query}%")->get();
     }
     return response()->json($productos);
 });

@@ -199,6 +199,11 @@
                     }
                 })
         }
+
+        document.getElementById('formBuscarPorFecha').addEventListener('submit', function(event) {
+            event.preventDefault();
+            finAllSales();
+        })
         // Función para obtener los detalles de la venta
         async function verDetalles(saleId) {
             try {

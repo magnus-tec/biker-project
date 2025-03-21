@@ -69,6 +69,9 @@ class SaleController extends Controller
                 'igv' => $request->igv,
                 'serie' => $this->generateSerie($request->document_type_id),
                 'number' => $this->generateNumero($request->document_type_id),
+                'payment_method_id' => $request->payment_method_id,
+                'document_type_id' => $request->document_type,
+
             ]);
 
             // 2️⃣ Insertar Productos

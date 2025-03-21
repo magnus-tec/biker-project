@@ -60,6 +60,8 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
         $rowData = $row->toArray();
 
         // Crear el producto en la tabla products
+        // var_dump($row->toArray());
+        // exit();
         $product = Product::create([
             'code_sku'      => $rowData[0],
             'code_bar'      => $rowData[1],
@@ -109,9 +111,9 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
             // Validación de las columnas obligatorias
             '0' => 'required|unique:products,code_sku',
             '1' => 'required|unique:products,code_bar',
-            '4' => 'required|exists:warehouses,name',
-            '5' => 'required|exists:brands,name',
-            '6' => 'required|exists:units,name',
+            '5' => 'required|exists:warehouses,name',
+            '6' => 'required|exists:brands,name',
+            '7' => 'required|exists:units,name',
         ];
     }
 
@@ -122,9 +124,9 @@ class ProductsImport implements OnEachRow, WithStartRow, WithValidation, SkipsOn
             '0.unique'     => 'El SKU ya existe en la base de datos.',
             '1.required'   => 'El codigo de barras del producto es obligatorio.',
             '1.unique'     => 'El codigo de barras  ya existe en la base de datos.',
-            '4.exists'     => 'El almacén ingresado no existe. Verifica el nombre correcto.',
-            '5.exists'     => 'La marca ingresada no es válida.',
-            '6.exists'     => 'La unidad ingresada no es válida.',
+            '5.exists'     => 'El almacén ingresado no existe. Verifica el nombre correcto.',
+            '6.exists'     => 'La marca ingresada no es válida.',
+            '7.exists'     => 'La unidad ingresada no es válida.',
         ];
     }
 

@@ -23,6 +23,8 @@ class Sale extends Model
         'quotation_id',
         'serie',
         'number',
+        'payment_method_id',
+        'document_type_id',
     ];
 
 
