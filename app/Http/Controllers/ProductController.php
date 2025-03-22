@@ -205,28 +205,59 @@ class ProductController extends Controller
     }
     public function import(Request $request)
     {
-        // Validar que el archivo sea correcto
         $request->validate([
             'importFile' => 'required|mimes:xlsx,csv',
         ]);
 
+        DB::beginTransaction(); // Inicia la transacción
+
         try {
+            $import = new ProductsImport(auth()->id());
+
+            // **PRIMERA IMPORTACIÓN (MODO PRUEBA)**
+            Excel::import($import, $request->file('importFile'));
+
+            $failures = $import->getFailures();
+
+            if (!empty($failures)) {
+                $errorMessages = [];
+
+                foreach ($failures as $failure) {
+                    $row = $failure['row'];
+                    if (!isset($errorMessages[$row])) {
+                        $errorMessages[$row] = [];
+                    }
+                    $errorMessages[$row] = array_merge($errorMessages[$row], $failure['errors']);
+                }
+
+                $finalMessages = [];
+                foreach ($errorMessages as $row => $errors) {
+                    $finalMessages[] = "Fila {$row}: " . implode(', ', array_unique($errors));
+                }
+
+                DB::rollBack(); // 🚨 REVERTIMOS LA IMPORTACIÓN 
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $finalMessages
+                ], 422);
+            }
+
+            // **SEGUNDA IMPORTACIÓN (REAL) SOLO SI NO HUBO ERRORES**
             Excel::import(new ProductsImport(auth()->id()), $request->file('importFile'));
-            // dd($request->file('importFile'));
+
+            DB::commit(); // ✅ Confirmamos los cambios si no hay errores
 
             return response()->json([
                 'success' => true,
-                'message' => 'Productos importados correctamente.'
+                'message' => 'Importación completada correctamente.'
             ]);
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'errors' => $e->failures()
-            ], 422);
         } catch (\Exception $e) {
+            DB::rollBack(); // Se revierte cualquier cambio si ocurre un error inesperado
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Error en la importación: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -367,7 +398,7 @@ class ProductController extends Controller
     {
         //
     }
-    private function determineUnitType($unitName)
+    public function determineUnitType($unitName)
     {
         $unitTypeMappings = [
             'Peso' => ['kilogramos', 'gramos', 'toneladas'],
