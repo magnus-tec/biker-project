@@ -13,6 +13,8 @@
                     class="w-full p-2 border rounded mb-2">
                 <input type="text" placeholder="Nombre del cliente" id="nombres_apellidos"
                     class="w-full p-2 border rounded mb-2">
+                <input type="text" placeholder="Direccion del cliente" id="direccion"
+                    class="w-full p-2 border rounded mb-2">
 
                 <!-- Botón que abre el modal -->
                 <button class="bg-yellow-400 p-2 rounded" id="openModal">Consultar Productos</button>
@@ -98,13 +100,24 @@
             <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-lg font-bold mb-4">Documento</h2>
                 <div>
-                    <label class="font-bold">RUC </label>
+                    <label class="font-bold">Empresa </label>
                     <!-- Se agrega id para capturar el valor -->
-                    <select id="ruc" class="w-full p-2 border rounded">
+                    <select id="companies_id" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
-                        <option value="1">SAGA FALABELLA S A -20100128056 </option>
-                        <option value="2">TURISMO TITANIC S.A -20301040301 </option>
-                        <option value="3">Biker S.A -20606806184 </option>
+                        @foreach ($companies as $company)
+                            <option value="{{ $company->id }}">{{ $company->razon_social }} - {{ $company->ruc }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="font-bold">Metodo pago</label>
+                    <!-- Se agrega id para capturar el valor -->
+                    <select id="paymentMethod" class="w-full p-2 border rounded">
+                        <option value="">Seleccione</option>
+                        @foreach ($paymentsMethod as $payment)
+                            <option value="{{ $payment->id }}">{{ $payment->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>
@@ -112,7 +125,7 @@
                     <!-- Se agrega id para capturar el valor -->
                     <select id="paymentType" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
-                        @foreach ($payments as $payment)
+                        @foreach ($paymentsType as $payment)
                             <option value="{{ $payment->id }}">{{ $payment->name }}</option>
                         @endforeach
                     </select>
@@ -129,7 +142,8 @@
                 </div>
                 <label>Fecha</label>
                 <!-- Se agrega id para la fecha -->
-                <input type="date" id="orderDate" value="{{ date('Y-m-d') }}" class="w-full p-2 border rounded mb-4">
+                <input type="date" id="orderDate" value="{{ date('Y-m-d') }}"
+                    class="w-full p-2 border rounded mb-4">
                 <label>Moneda</label>
                 <!-- Si la moneda es fija, también se puede capturar -->
                 <input type="text" id="orderCurrency" value="SOLES" class="w-full p-2 border rounded mb-4">
@@ -211,7 +225,9 @@
     const orderTableBody = document.getElementById("orderTableBody");
 
     // Variables de los datos de la orden
+    const paymentMethodSelect = document.getElementById("paymentMethod");
     const paymentTypeSelect = document.getElementById("paymentType");
+
     const orderDateInput = document.getElementById("orderDate");
     const orderCurrencyInput = document.getElementById("orderCurrency");
     const saveOrderBtn = document.getElementById("saveOrder");
@@ -517,13 +533,17 @@
         // Recopilar datos de la orden
         const customer_dni = document.getElementById("dni_personal").value;
         const customer_names_surnames = document.getElementById("nombres_apellidos").value;
-        const paymentType = paymentTypeSelect.value;
+        const customer_adress = document.getElementById("direccion").value;
+        const payment_method_id = paymentMethodSelect.value;
+        const payments_id = paymentTypeSelect.value;
         const orderDate = orderDateInput.value;
         const currency = orderCurrencyInput.value;
         const igv = parseFloat(document.getElementById("igvAmount").textContent.replace("S/ ", "")) || 0;
         const totalText = totalAmountEl.textContent.replace("S/ ", "");
         const total = parseFloat(totalText) || 0;
         const document_type_id = document.getElementById("documentType").value;
+        const companies_id = document.getElementById("companies_id").value;
+
 
         // Recopilar los productos de la orden
         const orderRows = orderTableBody.querySelectorAll("tr[data-product-id]");
@@ -546,14 +566,17 @@
         const orderData = {
             customer_dni,
             customer_names_surnames,
-            payment_type: paymentType,
+            customer_adress,
+            payment_method_id: payment_method_id,
+            payments_id: payments_id,
             order_date: orderDate,
             currency,
             total,
             igv,
             document_type_id,
             products: orderProducts,
-            services: services
+            services: services,
+            companies_id
         };
 
         // Enviar a "products.store" mediante fetch (POST)
@@ -572,14 +595,20 @@
                 return response.json();
             })
             .then(data => {
-                // Manejar la respuesta, por ejemplo, redireccionar o mostrar un mensaje
-                console.log("Orden guardada:", data);
-                alert("La orden se ha guardado correctamente.");
-                location.reload();
+                // let base64 = data.base64;
+                // let link = document.createElement("a");
+                // link.href = "data:application/pdf;base64," +
+                //     base64;
+                // link.target = "_blank";
+                // link.click();
+                console.log("Venta guardada:", data);
+                console.log(data)
+                alert("La Venta se ha guardado correctamente.");
+                //location.reload();
             })
             .catch(error => {
-                console.error("Error al guardar la orden:", error);
-                alert("Error al guardar la orden.");
+                console.error("Error al guardar la Venta:", error);
+                alert("Error al guardar la Venta.");
             });
     });
 

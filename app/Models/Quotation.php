@@ -21,7 +21,10 @@ class Quotation extends Model
         'igv',
         'status_sale',
         'document_type_id',
-        'payment_method_id'
+        'payment_method_id',
+        'companies_id',
+        'payments_id'
+
     ];
 
 

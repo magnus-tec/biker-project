@@ -19,7 +19,7 @@
                     Productos</button>
                 <div class="relative">
                     <label for="service" class="block font-medium text-gray-700">Servicio</label>
-                    <input type="text" id="service" name="service"
+                    <input type="text" id="service" name="service" value="{{ old('service', 'TALLER') }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm" autocomplete="off">
 
                     <!-- Dropdown de Sugerencias -->
@@ -31,7 +31,7 @@
 
                 <div class="mt-3">
                     <label for="service_price" class="block font-medium text-gray-700">Precio del Servicio</label>
-                    <input type="number" id="service_price" name="service_price"
+                    <input type="number" id="service_price" name="service_price" value="{{ old('service_price', 60) }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
 
@@ -100,13 +100,24 @@
             <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-lg font-bold mb-4">Documento</h2>
                 <div>
-                    <label class="font-bold">RUC </label>
+                    <label class="font-bold">Empresa </label>
                     <!-- Se agrega id para capturar el valor -->
-                    <select id="ruc" class="w-full p-2 border rounded">
+                    <select id="companies_id" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
-                        <option value="1">SAGA FALABELLA S A -20100128056 </option>
-                        <option value="2">TURISMO TITANIC S.A -20301040301 </option>
-                        <option value="3">Biker S.A -20606806184 </option>
+                        @foreach ($companies as $company)
+                            <option value="{{ $company->id }}">{{ $company->razon_social }} - {{ $company->ruc }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="font-bold">Metodo pago</label>
+                    <!-- Se agrega id para capturar el valor -->
+                    <select id="paymentMethod" class="w-full p-2 border rounded">
+                        <option value="">Seleccione</option>
+                        @foreach ($paymentsMethod as $payment)
+                            <option value="{{ $payment->id }}">{{ $payment->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>
@@ -114,7 +125,7 @@
                     <!-- Se agrega id para capturar el valor -->
                     <select id="paymentType" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
-                        @foreach ($payments as $payment)
+                        @foreach ($paymentsType as $payment)
                             <option value="{{ $payment->id }}">{{ $payment->name }}</option>
                         @endforeach
                     </select>
@@ -131,7 +142,8 @@
                 </div>
                 <label>Fecha</label>
                 <!-- Se agrega id para la fecha -->
-                <input type="date" id="orderDate" value="{{ date('Y-m-d') }}" class="w-full p-2 border rounded mb-4">
+                <input type="date" id="orderDate" value="{{ date('Y-m-d') }}"
+                    class="w-full p-2 border rounded mb-4">
                 <label>Moneda</label>
                 <!-- Si la moneda es fija, también se puede capturar -->
                 <input type="text" id="orderCurrency" value="SOLES" class="w-full p-2 border rounded mb-4">
@@ -202,6 +214,7 @@
     let products = []; // Productos disponibles en el modal
     let quotationItems = [];
     let orderTableBody = document.getElementById("orderTableBody");
+    const totalAmountEl = document.getElementById("totalAmount");
 
 
     //SERVICIOS
@@ -255,6 +268,23 @@
         updateTotalAmount();
     }
 
+    function updateTotalAmount() {
+        let subtotalTotal = 0;
+        let total = 0;
+        services.forEach(service => {
+            subtotalTotal += parseFloat(service.price);
+        });
+        const rows = orderTableBody.querySelectorAll("tr[data-product-id]");
+        rows.forEach(row => {
+            const subtotal = parseFloat(row.querySelector(".order-subtotal").textContent) || 0;
+            subtotalTotal += subtotal;
+        });
+        let baseSubtotal = subtotalTotal / 1.18;
+        let igv = subtotalTotal - baseSubtotal;
+        document.getElementById("subtotalAmount").textContent = "S/ " + baseSubtotal.toFixed(2);
+        document.getElementById("igvAmount").textContent = "S/ " + igv.toFixed(2);
+        totalAmountEl.textContent = "S/ " + subtotalTotal.toFixed(2);
+    }
     document.getElementById("service").addEventListener("input", function() {
         const inputValue = this.value.trim();
         const suggestionsList = document.getElementById("serviceSuggestions");
@@ -428,9 +458,7 @@
             });
 
             if (!response.ok) throw new Error("Error en la petición");
-
             const data = await response.json();
-            console.log("Orden guardada:", data);
             alert("La cotización se ha guardado correctamente.");
         } catch (error) {
             console.error("Error al guardar la orden:", error);
@@ -514,6 +542,9 @@
         quotationItems.forEach(item => {
             totalAmount += item.quantity * item.unit_price;
         })
+        services.forEach(item => {
+            totalAmount += parseFloat(item.price);
+        })
         igvAmount = totalAmount * 0.18;
         subtotalAmount = totalAmount - igvAmount;
         document.getElementById("subtotalAmount").textContent = "S/ " + subtotalAmount.toFixed(2);
@@ -547,10 +578,12 @@
         return {
             customer_dni: document.getElementById("dni_personal").value.trim(),
             customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
-            payment_method_id: document.getElementById("paymentType").value,
+            payment_method_id: document.getElementById("paymentMethod").value,
+            payments_id: document.getElementById("paymentType").value,
             order_date: document.getElementById("orderDate").value,
             currency: document.getElementById("orderCurrency").value,
             document_type: document.getElementById("documentType").value,
+            companies_id: document.getElementById("companies_id").value,
             igv: parseAmount("igvAmount"),
             total: parseAmount("totalAmount")
         };

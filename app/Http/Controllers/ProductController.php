@@ -235,7 +235,7 @@ class ProductController extends Controller
                     $finalMessages[] = "Fila {$row}: " . implode(', ', array_unique($errors));
                 }
 
-                DB::rollBack(); // 🚨 REVERTIMOS LA IMPORTACIÓN 
+                DB::rollBack();
 
                 return response()->json([
                     'success' => false,

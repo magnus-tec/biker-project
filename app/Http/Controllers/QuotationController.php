@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\DocumentType;
+use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductPrice;
@@ -33,10 +35,11 @@ class QuotationController extends Controller
     public function create()
     {
         $warehouses = Warehouse::all();
-        $payments = PaymentMethod::where('status', 1)->get();
+        $paymentsMethod = PaymentMethod::where('status', 1)->get();
+        $paymentsType = Payment::all();
         $documentTypes = DocumentType::whereIn('name', ['FACTURA', 'BOLETA DE VENTA', 'NOTA DE VENTA'])->get();
-
-        return view('quotation.create', compact('payments', 'warehouses', 'documentTypes'));
+        $companies = Company::all();
+        return view('quotation.create', compact('paymentsMethod', 'paymentsType', 'warehouses', 'documentTypes', 'companies'));
     }
     public function generatePDF($id)
     {
@@ -115,6 +118,8 @@ class QuotationController extends Controller
                 'igv' => $request->igv,
                 'document_type_id' => $request->document_type,
                 'payment_method_id' => $request->payment_method_id,
+                'companies_id' => $request->companies_id,
+                'payments_id' => $request->payments_id,
             ]);
 
             // 2️⃣ Insertar Productos
@@ -189,6 +194,11 @@ class QuotationController extends Controller
                 'quotation_id' => $cotizacion->id,
                 'serie' => $this->generateSerie($cotizacion->document_type_id),
                 'number' => $this->generateNumero($cotizacion->document_type_id),
+                'payment_method_id' => $cotizacion->payment_method_id,
+                'document_type_id' => $cotizacion->document_type_id,
+                'companies_id' => $cotizacion->companies_id,
+                'payments_id' => $cotizacion->payments_id,
+
             ]);
             if (!empty($cotizacion->quotationItems)) {
                 foreach ($cotizacion->quotationItems as $item) {
@@ -396,6 +406,6 @@ class QuotationController extends Controller
         // Generar el nuevo número
         $nuevoNumero = $ultimaVenta ? (int) $ultimaVenta->number + 1 : 1;
 
-        return str_pad((string) $nuevoNumero, 4, '0', STR_PAD_LEFT); // 0001, 0002, 0003...
+        return (string) $nuevoNumero;
     }
 }

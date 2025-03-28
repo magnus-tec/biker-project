@@ -93,7 +93,9 @@
                     </div>
                 </div>
                 <div class="order-info">
-                    <h2>PEDIDO #: {{ $sale->id }}</h2>
+                    <h2>RUC : {{ $sale->companies->ruc }}</h2>
+                    <h2>{{ $sale->documentType->name }}</h2>
+                    <h2>{{ $sale->serie }}-{{ $sale->number }}</h2>
                 </div>
             </div>
         </div>

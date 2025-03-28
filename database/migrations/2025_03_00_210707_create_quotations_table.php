@@ -19,12 +19,16 @@ return new class extends Migration
             $table->string('customer_names_surnames')->nullable();
             $table->decimal('total_price', 10, 2);
             $table->decimal('igv', 10, 2);
+            $table->string('observation')->nullable();
+            $table->string('customer_address')->nullable();
             $table->string('status')->default('1');
             $table->string('status_sale')->default('0');
             $table->unsignedBigInteger('document_type_id')->nullable();
             $table->foreign('document_type_id')->references('id')->on('document_types')->onDelete('cascade');
             $table->unsignedBigInteger('payment_method_id')->nullable();
             $table->foreign('payment_method_id')->references('id')->on('payment_methods')->onDelete('cascade');
+            $table->foreignId('payments_id')->constrained('payments')->onDelete('cascade');
+            $table->foreignId('companies_id')->constrained('companies')->onDelete('cascade');
             $table->unsignedBigInteger('user_register')->nullable();
             $table->foreign('user_register')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('user_update')->nullable();
