@@ -10,6 +10,7 @@ use App\Models\Stock;
 use App\Models\Warehouse;
 use App\Models\Wholesaler;
 use App\Models\WholesalerItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class WholesaleController extends Controller
@@ -161,7 +162,18 @@ class WholesaleController extends Controller
         $regions = Region::all();
         return view('wholesaler.edit', compact('mayorista', 'warehouses', 'regions'));
     }
+    public function generatePDF($id)
+    {
+        $mayorista = Wholesaler::with('wholesalerItems.item', 'userRegister')->find($id);
+        if (!$mayorista) {
+            return abort(404, 'Venta no encontrada');
+        }
 
+        // Si `sale_items` es null, aseguramos que sea un array vacío para evitar errores
+        $mayorista->wholesaler_items = $mayorista->wholesaler_items ?? [];
+        $pdf = Pdf::loadView('wholesaler.pdf', compact('mayorista'));
+        return $pdf->stream('wholesaler.pdf');
+    }
     /**
      * Update the specified resource in storage.
      */
