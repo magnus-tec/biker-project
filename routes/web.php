@@ -6,7 +6,9 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\WholesaleController;
 use App\Models\Product;
+use App\Models\Wholesaler;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -92,6 +94,11 @@ Route::group(
         Route::get('/quotation/pdf/{id}', [QuotationController::class, 'generatePDF'])->name('quotations.pdf');
         Route::post('/quotation/cotizacion/vender/{id}', [QuotationController::class, 'vender'])->name('quotations.vender');
         Route::get('mechanic/MecanicosDisponibles', [App\Http\Controllers\QuotationController::class, 'MecanicosDisponibles'])->name('mecanicosDisponibles');
+        //MAYORISTA
+        Route::resource('wholesalers', WholesaleController::class);
+        Route::get('/wholesaler/listado', [WholesaleController::class, 'filtroPorfecha'])->name('wholesalers.filtroPorfecha');
+        Route::get('/wholesaler/detalles/{id}', [WholesaleController::class, 'detallesWholesaler'])->name('wholesalers.detallesWholesaler');
+        Route::get('/wholesaler/pdf/{id}', [WholesaleController::class, 'generatePDF'])->name('wholesalers.pdf');
     }
 );
 require __DIR__ . '/auth.php';

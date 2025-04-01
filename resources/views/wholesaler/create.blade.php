@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            cotizacion insertar
+            Mayorista insertar
         </h2>
     </x-slot>
     <div class="container mx-auto p-2 text-sm">
@@ -133,7 +133,7 @@
             </div>
             <!-- Detalle del Pedido -->
             <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-lg font-bold mb-4">Documento</h2>
+                {{-- <h2 class="text-lg font-bold mb-4">Documento</h2>
                 <div>
                     <label class="font-bold">Empresa </label>
                     <!-- Se agrega id para capturar el valor -->
@@ -164,8 +164,8 @@
                             <option value="{{ $payment->id }}">{{ $payment->name }}</option>
                         @endforeach
                     </select>
-                    {{-- <input type="text" id="paymentAmount1" placeholder="Monto"
-                        class="w-full p-2 border rounded mt-2"> --}}
+                    <input type="text" id="paymentAmount1" placeholder="Monto"
+                        class="w-full p-2 border rounded mt-2">
                 </div>
                 <div class="mt-2">
                     <input type="checkbox" id="togglePaymentFields" class="mr-2">
@@ -190,21 +190,20 @@
 
                 <div>
                     <label class="font-bold">Tipo de documento</label>
-                    <!-- Se agrega id para capturar el valor -->
                     <select id="documentType" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
                         @foreach ($documentTypes as $documentType)
                             <option value="{{ $documentType->id }}">{{ $documentType->name }}</option>
                         @endforeach
                     </select>
-                </div>
-                <label>Fecha</label>
+                </div> --}}
+                {{-- <label>Fecha</label> --}}
                 <!-- Se agrega id para la fecha -->
-                <input type="date" id="orderDate" value="{{ date('Y-m-d') }}"
-                    class="w-full p-2 border rounded mb-4">
-                <label>Moneda</label>
+                {{-- <input type="date" id="orderDate" value="{{ date('Y-m-d') }}"
+                    class="w-full p-2 border rounded mb-4"> --}}
+                {{-- <label>Moneda</label> --}}
                 <!-- Si la moneda es fija, también se puede capturar -->
-                <input type="text" id="orderCurrency" value="SOLES" class="w-full p-2 border rounded mb-4">
+                {{-- <input type="text" id="orderCurrency" value="SOLES" class="w-full p-2 border rounded mb-4"> --}}
                 <!-- Subtotal -->
                 <div class="bg-gray-200 text-gray-800 p-1 rounded text-center text-sm font-bold mb-2">
                     Subtotal: <span id="subtotalAmount">S/ 0.00</span>
@@ -219,7 +218,7 @@
                 </div>
                 <div class="mt-4">
                     <!-- Botón para guardar la orden -->
-                    <button class="bg-blue-500 text-white p-2 rounded" onclick="saveQuotation()">Guardar</button>
+                    <button class="bg-blue-500 text-white p-2 rounded" onclick="saveWholesaler()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -284,7 +283,6 @@
     let quotationItems = [];
     let orderTableBody = document.getElementById("orderTableBody");
     const totalAmountEl = document.getElementById("totalAmount");
-    let payments = [];
     // BUSCADOR DEPARTAMENTO PROVINCIA DISTRITO
     document.getElementById('regions_id').addEventListener('change', function() {
         const regionId = this.value;
@@ -412,11 +410,7 @@
             addProductTo(product); // Usa la misma función para crear filas
         });
     }
-    //metodo d epago 
-    document.getElementById('togglePaymentFields').addEventListener('change', function() {
-        const container = document.getElementById('paymentFieldsContainer');
-        container.style.display = this.checked ? 'block' : 'none';
-    });
+
 
     //SERVICIOS
     //  AGREGANDO SERVICIOS
@@ -629,61 +623,31 @@
     }
 
     // guardar cotizacion 
-    async function saveQuotation() {
+    async function saveWholesaler() {
         try {
 
             const orderData = buildOrderData();
-            quotationPaymentMethods()
-            const response = await fetch('{{ route('quotations.store') }}', {
+            const response = await fetch('{{ route('wholesalers.store') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({
-                    ...orderData,
-                    payments
-                })
+                body: JSON.stringify(orderData)
             });
 
             if (!response.ok) throw new Error("Error en la petición");
             const data = await response.json();
-            alert("La cotización se ha guardado correctamente.");
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Se registro correctamente.',
+                showConfirmButton: false,
+                timer: 1500
+            })
         } catch (error) {
             console.error("Error al guardar la orden:", error);
             alert("Error al guardar la orden.");
-        }
-    }
-
-    function quotationPaymentMethods() {
-        payments = [];
-        let paymentMethod1 = document.getElementById('paymentMethod1').value;
-        const totalAmountDiv = document.getElementById('totalAmount');
-        let text = totalAmountDiv.textContent.trim();
-        let paymentAmount1 = parseFloat(text.replace('S/', '').trim()) || 0;
-        let paymentAmount2 = 0;
-        if (document.getElementById('togglePaymentFields').checked) {
-            let paymentMethod2 = document.getElementById('paymentMethod2').value;
-            paymentAmount2 = parseFloat(document.getElementById('paymentAmount2').value) || 0;
-
-            if (paymentMethod2 && paymentAmount2 > 0) {
-                payments.push({
-                    payment_method_id: paymentMethod2,
-                    amount: paymentAmount2,
-                    order: 2
-                });
-            }
-        } else {
-            document.getElementById('paymentMethod2').value = '';
-            document.getElementById('paymentAmount2').value = '';
-        }
-
-        if (paymentMethod1) {
-            payments.push({
-                payment_method_id: paymentMethod1,
-                amount: paymentAmount1 - paymentAmount2,
-                order: 1
-            });
         }
     }
 
@@ -806,13 +770,7 @@
             customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
             customer_address: document.getElementById("direccion").value.trim(),
             districts_id: document.getElementById("districts_id").value,
-            // payment_method_id: document.getElementById("paymentMethod").value,
             mechanics_id: document.getElementById("mechanics_id").value,
-            payments_id: document.getElementById("paymentType").value,
-            order_date: document.getElementById("orderDate").value,
-            currency: document.getElementById("orderCurrency").value,
-            document_type_id: document.getElementById("documentType").value,
-            companies_id: document.getElementById("companies_id").value,
             igv: parseAmount("igvAmount"),
             total: parseAmount("totalAmount")
         };

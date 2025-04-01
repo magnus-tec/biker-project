@@ -3,7 +3,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight"></h2>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 py-12 text-xs">
+    <div class="max-w-min mx-auto px-4 py-12 text-xs">
         <!-- Encabezado y búsqueda -->
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-800">Lista de Productos</h2>
@@ -66,41 +66,41 @@
             <table class="min-w-full divide-y divide-gray-200 ">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
                             Código
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Código de Barras
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
+                            Código Barras
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Imagenes del Producto
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
+                            Imagenes
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider ">
                             Descripción
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
                             Model
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
                             Location
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
                             Tipo Almacén
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
                             Marca
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
                             Unidad MEDIDA
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
                             Precio
                         </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{-- <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
-                        </th>
-                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Acciones
+                        </th> --}}
+                        <th class="px-3 py-1 text-left text-sx font-medium text-gray-500 uppercase tracking-wider">
+
                         </th>
                     </tr>
                 </thead>
@@ -242,46 +242,43 @@
                             products.forEach(product => {
                                 rowsHtml += `
                                     <tr>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${product.code_sku}</td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx text-gray-900">${product.code_sku}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">
                                             ${product.code_bar ?? ''}
                                         </td>
-                                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                                         <td class="px-3 py-1 whitespace-nowrap text-sx text-gray-900">
                             ${product.images?.length > 0 
                                 ? `<img src="${product.images[0].image_path}" alt="Producto"
-                                                                                                                                                                                                                                                                                                                                                                                                        class="w-20 h-20 object-cover rounded-lg cursor-pointer"
-                                                                                                                                                                                                                                                                                                                                                                                                        onclick="openModal(${product.id})">`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            onclick="openModal(${product.id})">`
                                 : '<span class="text-gray-400">No Image</span>'}
                         </td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.description ?? ''}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">${product.description ?? ''}</td>
                            
 
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.model ?? ''}</td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.location ?? ''}</td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.warehouse?.name ?? ''}</td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.brand?.name ?? ''}</td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.unit?.name ?? ''}</td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <td class="px-3 w-[100px] text-xs font-medium text-gray-900">
+                                            <div class="w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
+                                                ${product.model ?? '-'}
+                                            </div>
+                                            </td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">${product.location ?? ''}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">${product.warehouse?.name ?? ''}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">${product.brand?.name ?? ''}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">${product.unit?.name ?? ''}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">
                                             <select class="border border-gray-300 rounded px-2 py-1">
                                              ${product.prices?.map(price => `<option value="${price.price}">${price.type} - ${price.price}</option>`).join('') || 
                                              '<option value="">No hay precios disponibles</option>'}
                                             </select>
                                         </td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            <button type="button" id="btn-${product.id}"
-                                                class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md ${product.status == 0 ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700'}"
-                                                onclick="confirmDelete(${product.id}, '${product.status == 0 ? '¿Está seguro de desactivar este registro?' : '¿Está seguro de activar este registro?'}')">
-                                                ${product.status == 1 ? 'Activado' : 'Deshabilitado'}
-                                            </button>
-                                        </td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium">
-                                            <a href="/products/${product.id}/edit" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</a>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sx font-medium">
+                                            <a href="/products/${product.id}/edit" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="bi bi-pencil-square"></i> </a>
                                             <form action="/products/${product.id}" method="POST" style="display: inline;">
                                                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="_method" value="DELETE">
                                                 <button type="submit" class="text-red-600 hover:text-red-900"
                                                     onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
-                                                    Eliminar
+                                                    <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             </form>
                                         </td>
