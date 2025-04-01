@@ -13,9 +13,22 @@
                     class="w-full p-2 border rounded mb-2">
                 <input type="text" placeholder="Nombre del cliente" id="nombres_apellidos"
                     class="w-full p-2 border rounded mb-2">
-
+                <input type="text" placeholder="Direccion del cliente" id="direccion"
+                    class="w-full p-2 border rounded mb-2">
+                <select name="region" id="regions_id" class="w-3/12 p-2 border rounded">
+                    <option value="todos">Seleccione un Departamento</option>
+                    @foreach ($regions as $region)
+                        <option value="{{ $region->id }}">{{ $region->name }}</option>
+                    @endforeach
+                </select>
+                <select name="" id="provinces_id" class="w-3/12 p-2 border rounded" disabled>
+                    <option value="todos">Seleccione una opción</option>
+                </select>
+                <select name="" id="districts_id" class="w-3/12 p-2 border rounded" disabled>
+                    <option value="todos">Seleccione una opción</option>
+                </select>
                 <!-- Botón que abre el modal -->
-                <button class="bg-yellow-400 p-2 rounded" id="buscarProductos">Consultar
+                <button class="bg-yellow-400 p-2 rounded w-3/12 mt-2" id="buscarProductos">Consultar
                     Productos</button>
                 <div class="relative">
                     <label for="service" class="block font-medium text-gray-700">Servicio</label>
@@ -37,7 +50,29 @@
 
                 <button type="button" id="addService" class="bg-blue-500 text-white px-4 py-2 mt-3 rounded-md">Agregar
                     Servicio</button>
+                <div id="modalMecanicos"
+                    class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+                    <div class="bg-white p-6 rounded-lg shadow-md w-1/3">
+                        <h3 class="text-xl font-semibold mb-4">Mecánicos Disponibles</h3>
+                        <div id="listaMecanicosModal"></div>
+                        <button onclick="cerrarModal()"
+                            class="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg">Cerrar</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex mt-2">
+                        <input name="datos_mecanico" id="datos_mecanico" type="text"
+                            class="block w-6/12  border border-gray-300 rounded-md shadow-sm">
+                        <input name="mechanics_id" id="mechanics_id" type="hidden"
+                            class="block w-full  border border-gray-300 rounded-md shadow-sm">
+                        <button onclick="eliminarMecanico()" type="button"
+                            class="px-4 py-2 bg-red-500 text-white rounded-lg mr-11">X</button>
+                        <button onclick="mostrarModal()" type="button"
+                            class="px-4 py-2 bg-green-500 text-white rounded-lg  whitespace-nowrap">Seleccionar
+                            Mecánico</button>
 
+                    </div>
+                </div>
                 <!-- Modal -->
                 <div id="buscarProductosModal"
                     class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 hidden">
@@ -111,16 +146,6 @@
                     </select>
                 </div>
                 <div>
-                    <label class="font-bold">Metodo pago</label>
-                    <!-- Se agrega id para capturar el valor -->
-                    <select id="paymentMethod" class="w-full p-2 border rounded">
-                        <option value="">Seleccione</option>
-                        @foreach ($paymentsMethod as $payment)
-                            <option value="{{ $payment->id }}">{{ $payment->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
                     <label class="font-bold">Tipo pago</label>
                     <!-- Se agrega id para capturar el valor -->
                     <select id="paymentType" class="w-full p-2 border rounded">
@@ -130,6 +155,39 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <label class="font-bold">Metodo pago</label>
+                    <!-- Se agrega id para capturar el valor -->
+                    <select id="paymentMethod1" class="w-full p-2 border rounded">
+                        <option value="">Seleccione</option>
+                        @foreach ($paymentsMethod as $payment)
+                            <option value="{{ $payment->id }}">{{ $payment->name }}</option>
+                        @endforeach
+                    </select>
+                    {{-- <input type="text" id="paymentAmount1" placeholder="Monto"
+                        class="w-full p-2 border rounded mt-2"> --}}
+                </div>
+                <div class="mt-2">
+                    <input type="checkbox" id="togglePaymentFields" class="mr-2">
+                    <label for="togglePaymentFields">Agregar método de pago y monto</label>
+                </div>
+                <div id="paymentFieldsContainer" class="mt-2 hidden">
+                    <div>
+                        <label class="font-bold">Método de pago</label>
+                        <select id="paymentMethod2" class="w-full p-2 border rounded">
+                            <option value="">Seleccione</option>
+                            @foreach ($paymentsMethod as $payment)
+                                <option value="{{ $payment->id }}">{{ $payment->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="font-bold">Monto a pagar</label>
+                        <input type="number" id="paymentAmount2" class="w-full p-2 border rounded"
+                            placeholder="Ingrese el monto">
+                    </div>
+                </div>
+
                 <div>
                     <label class="font-bold">Tipo de documento</label>
                     <!-- Se agrega id para capturar el valor -->
@@ -169,6 +227,17 @@
         <!-- Tabla de Productos (Detalle del Pedido) -->
         <div class="mt-6 bg-white p-6 rounded-lg shadow">
             <h2 class="text-lg font-bold mb-4">Producto</h2>
+            <div class="mb-4 flex items-center justify-end ">
+                <div class="w-5/12">
+                    <input type="text" placeholder="Buscar por nombre del producto..."
+                        class="w-full p-2 border rounded" id="searchProductList">
+                </div>
+                {{-- <div>
+                    <button class="bg-blue-500 text-white px-4 py-2  rounded-md rounded-l-none mr-5"
+                        id="btnBuscarProductList">Buscar</button>
+                </div> --}}
+            </div>
+
             <table class="w-full border-collapse border border-gray-300" id="orderTable">
                 <thead>
                     <tr class="bg-gray-200">
@@ -215,7 +284,139 @@
     let quotationItems = [];
     let orderTableBody = document.getElementById("orderTableBody");
     const totalAmountEl = document.getElementById("totalAmount");
+    let payments = [];
+    // BUSCADOR DEPARTAMENTO PROVINCIA DISTRITO
+    document.getElementById('regions_id').addEventListener('change', function() {
+        const regionId = this.value;
+        if (regionId !== 'Seleccione un Departamento') {
+            fetchProvinces(regionId);
+        } else {
+            clearSelect('provinces_id');
+            clearSelect('districts_id');
+        }
+    });
+    document.getElementById('provinces_id').addEventListener('change', function() {
+        const provinceId = this.value;
+        if (provinceId !== 'todos') {
+            fetchDistricts(provinceId);
+        } else {
+            clearSelect('districts_id');
+        }
+    });
 
+    function fetchProvinces(regionId) {
+        fetch(`/api/provinces/${regionId}`)
+            .then(response => response.json())
+            .then(data => {
+                const provinceSelect = document.getElementById('provinces_id');
+                provinceSelect.removeAttribute(
+                    'disabled');
+                clearSelect('districts_id');
+                updateSelectOptions('provinces_id', data.provinces);
+                console.log('data.provinces', data.provinces);
+            })
+            .catch(error => console.error('Error fetching provinces:', error));
+    }
+
+    function updateSelectOptions(selectId, options) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="todos">Seleccione una opción</option>';
+        options.forEach(option => {
+            const opt = document.createElement('option');
+            opt.value = option.id;
+            opt.textContent = option.name;
+            select.appendChild(opt);
+        });
+    }
+
+    function clearSelect(selectId) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="todos">Seleccione una opción</option>';
+    }
+
+    function fetchDistricts(provinceId) {
+        fetch(`/api/districts/${provinceId}`)
+            .then(response => response.json())
+            .then(data => {
+                const districtSelect = document.getElementById('districts_id');
+                districtSelect.removeAttribute(
+                    'disabled');
+                updateSelectOptions('districts_id', data.districts);
+            })
+            .catch(error => console.error('Error fetching districts:', error));
+    }
+
+    //AGREGANDO PARA EL MECANICO
+    function seleccionarMecanico(id, datos) {
+        document.getElementById('mechanics_id').value = id;
+        document.getElementById('datos_mecanico').value = datos;
+    }
+
+    function eliminarMecanico() {
+        document.getElementById('mechanics_id').value = '';
+        document.getElementById('datos_mecanico').value = '';
+    }
+
+    function mostrarModal() {
+        document.getElementById('modalMecanicos').classList.remove('hidden');
+        fetch("{{ route('mecanicosDisponibles') }}")
+            .then(response => response.json())
+            .then(data => {
+                let contenedor = document.getElementById('listaMecanicosModal');
+                contenedor.innerHTML = '';
+
+                data.forEach(mecanico => {
+                    let row = `
+                    <div class="flex justify-between items-center p-2 border-b">
+                        <span>${mecanico.name} ${mecanico.apellidos} </span>
+                        <button onclick="seleccionarMecanico(${mecanico.id}, '${mecanico.name} ${mecanico.apellidos}'); cerrarModal()" 
+                            class="px-3 py-1 bg-blue-500 text-white rounded-lg" type="button">
+                            Asignar
+                        </button>
+                    </div>
+                `;
+                    contenedor.innerHTML += row;
+                });
+            });
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalMecanicos').classList.add('hidden');
+    }
+    //agregando buscador 
+    document.getElementById('searchProductList').addEventListener('input', function() {
+        let searchProductList = document.getElementById('searchProductList').value;
+        let filteredItems = quotationItems.filter(item =>
+            item.description.toLowerCase().includes(searchProductList.toLowerCase())
+        );
+        console.log(searchProductList, "searchProductList")
+        console.log(filteredItems, "filteredItems")
+        console.log(quotationItems, "quotationItems")
+        mostrarProductos(filteredItems);
+    })
+
+    function mostrarProductos(items) {
+        let productListContainer = document.getElementById('orderTableBody');
+        productListContainer.innerHTML = ''; // Limpia la tabla
+
+        if (items.length === 0) {
+            productListContainer.innerHTML = `
+            <tr id="emptyRow">
+                <td colspan="7" class="text-center p-2">No hay productos disponibles</td>
+            </tr>
+        `;
+            return;
+        }
+
+        items.forEach(product => {
+            addProductTo(product); // Usa la misma función para crear filas
+        });
+    }
+    //metodo d epago 
+    document.getElementById('togglePaymentFields').addEventListener('change', function() {
+        const container = document.getElementById('paymentFieldsContainer');
+        container.style.display = this.checked ? 'block' : 'none';
+    });
 
     //SERVICIOS
     //  AGREGANDO SERVICIOS
@@ -236,11 +437,11 @@
 
         services.push(newService); // Agregar al array
         updateTable(); // Refrescar la tabla
+        updateInformationCalculos();
 
         // Limpiar inputs
         document.getElementById("service").value = "";
         document.getElementById("service_price").value = "";
-        updateTotalAmount();
     });
 
     // Función para actualizar la tabla de servicios
@@ -265,26 +466,9 @@
     function deleteService(id) {
         services = services.filter(service => service.id !== id); // Elimina del array
         updateTable(); // Refrescar la tabla
-        updateTotalAmount();
+        updateInformationCalculos();
     }
 
-    function updateTotalAmount() {
-        let subtotalTotal = 0;
-        let total = 0;
-        services.forEach(service => {
-            subtotalTotal += parseFloat(service.price);
-        });
-        const rows = orderTableBody.querySelectorAll("tr[data-product-id]");
-        rows.forEach(row => {
-            const subtotal = parseFloat(row.querySelector(".order-subtotal").textContent) || 0;
-            subtotalTotal += subtotal;
-        });
-        let baseSubtotal = subtotalTotal / 1.18;
-        let igv = subtotalTotal - baseSubtotal;
-        document.getElementById("subtotalAmount").textContent = "S/ " + baseSubtotal.toFixed(2);
-        document.getElementById("igvAmount").textContent = "S/ " + igv.toFixed(2);
-        totalAmountEl.textContent = "S/ " + subtotalTotal.toFixed(2);
-    }
     document.getElementById("service").addEventListener("input", function() {
         const inputValue = this.value.trim();
         const suggestionsList = document.getElementById("serviceSuggestions");
@@ -324,7 +508,6 @@
             });
     });
     // FIN DE SERVICIOS
-
 
     function openModal(modalId, callback) {
         const modal = document.getElementById(modalId);
@@ -377,7 +560,7 @@
         productList.forEach(product => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                    <td class="px-2 py-1 border">${product.code}</td>
+                    <td class="px-2 py-1 border">${product.code_sku}</td>
                     <td class="px-2 py-1 border">${product.description}</td>
                     <td class="px-2 py-1 border">${product.location}</td>
                     <td class="px-2 py-1 border">${product.stock.quantity}</td>
@@ -441,20 +624,26 @@
                 item.priceId = parseFloat(selectedOption.dataset.priceId);
             }
         })
+        updateInformationCalculos();
+
     }
 
     // guardar cotizacion 
     async function saveQuotation() {
         try {
-            const orderData = buildOrderData();
 
+            const orderData = buildOrderData();
+            quotationPaymentMethods()
             const response = await fetch('{{ route('quotations.store') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify(orderData)
+                body: JSON.stringify({
+                    ...orderData,
+                    payments
+                })
             });
 
             if (!response.ok) throw new Error("Error en la petición");
@@ -465,6 +654,39 @@
             alert("Error al guardar la orden.");
         }
     }
+
+    function quotationPaymentMethods() {
+        payments = [];
+        let paymentMethod1 = document.getElementById('paymentMethod1').value;
+        const totalAmountDiv = document.getElementById('totalAmount');
+        let text = totalAmountDiv.textContent.trim();
+        let paymentAmount1 = parseFloat(text.replace('S/', '').trim()) || 0;
+        let paymentAmount2 = 0;
+        if (document.getElementById('togglePaymentFields').checked) {
+            let paymentMethod2 = document.getElementById('paymentMethod2').value;
+            paymentAmount2 = parseFloat(document.getElementById('paymentAmount2').value) || 0;
+
+            if (paymentMethod2 && paymentAmount2 > 0) {
+                payments.push({
+                    payment_method_id: paymentMethod2,
+                    amount: paymentAmount2,
+                    order: 2
+                });
+            }
+        } else {
+            document.getElementById('paymentMethod2').value = '';
+            document.getElementById('paymentAmount2').value = '';
+        }
+
+        if (paymentMethod1) {
+            payments.push({
+                payment_method_id: paymentMethod1,
+                amount: paymentAmount1 - paymentAmount2,
+                order: 1
+            });
+        }
+    }
+
     //agregar productos
     function agregarProducto(productId) {
         const quantity = document.querySelector(`.data-quantity-id-${productId}`).value;
@@ -482,6 +704,10 @@
                 quantity: quantity,
                 maximum_stock: response.stock.quantity,
             }
+            // const productCopy = {
+            //     ...product
+            // };
+            // delete productCopy.prices;
             quotationItems.push(product);
             addProductTo(product);
             updateInformationCalculos();
@@ -569,7 +795,7 @@
         return {
             ...getCustomerData(),
             products: quotationItems,
-            services: services
+            services: services,
         };
     }
 
@@ -578,11 +804,14 @@
         return {
             customer_dni: document.getElementById("dni_personal").value.trim(),
             customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
-            payment_method_id: document.getElementById("paymentMethod").value,
+            customer_address: document.getElementById("direccion").value.trim(),
+            districts_id: document.getElementById("districts_id").value,
+            // payment_method_id: document.getElementById("paymentMethod").value,
+            mechanics_id: document.getElementById("mechanics_id").value,
             payments_id: document.getElementById("paymentType").value,
             order_date: document.getElementById("orderDate").value,
             currency: document.getElementById("orderCurrency").value,
-            document_type: document.getElementById("documentType").value,
+            document_type_id: document.getElementById("documentType").value,
             companies_id: document.getElementById("companies_id").value,
             igv: parseAmount("igvAmount"),
             total: parseAmount("totalAmount")

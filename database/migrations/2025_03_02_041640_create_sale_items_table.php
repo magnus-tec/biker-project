@@ -18,6 +18,8 @@ return new class extends Migration
             $table->unsignedBigInteger('item_id')->nullable(); // ID del producto o servicio
             $table->integer('quantity')->nullable(); // Solo aplica a productos
             $table->decimal('unit_price', 10, 2);
+            $table->foreignId('users_id')->nullable()->constrained('users')->onDelete('cascade');
+
             $table->timestamps();
         });
     }

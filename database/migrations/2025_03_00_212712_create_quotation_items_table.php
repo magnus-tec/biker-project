@@ -19,6 +19,8 @@ return new class extends Migration
             $table->integer('quantity')->nullable(); // Solo aplica a productos
             $table->decimal('unit_price', 10, 2);
             $table->foreignId('product_prices_id')->nullable()->constrained('product_prices')->onDelete('cascade');
+            $table->unsignedBigInteger('mechanics_id')->nullable();
+            $table->foreign('mechanics_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

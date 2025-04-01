@@ -120,7 +120,7 @@
             </tr>
             <tr>
                 <th style="text-align: right; padding: 5px;">DIRECCIÓN :</th>
-                <td style="text-align: left; padding: 5px;"></td>
+                <td style="text-align: left; padding: 5px;">{{ $sale->customer_address }}</td>
                 <th style="text-align: right; padding: 5px;">PAGO :</th>
                 <td style="text-align: left; padding: 5px;"></td>
             </tr>

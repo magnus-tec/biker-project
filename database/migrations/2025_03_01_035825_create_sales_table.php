@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('total_price', 10, 2);
             $table->decimal('igv', 10, 2);
             $table->string('serie');
-            $table->string('number');
+            $table->unsignedInteger('number');
             $table->string('observation')->nullable();
             $table->string('customer_address')->nullable();
             $table->foreignId('quotation_id')->nullable()->constrained('quotations')->onDelete('cascade');

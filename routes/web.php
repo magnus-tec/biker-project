@@ -91,6 +91,7 @@ Route::group(
         Route::get('/quotation/detalles/{id}', [QuotationController::class, 'detallesQuotation'])->name('quotations.detallesQuotation');
         Route::get('/quotation/pdf/{id}', [QuotationController::class, 'generatePDF'])->name('quotations.pdf');
         Route::post('/quotation/cotizacion/vender/{id}', [QuotationController::class, 'vender'])->name('quotations.vender');
+        Route::get('mechanic/MecanicosDisponibles', [App\Http\Controllers\QuotationController::class, 'MecanicosDisponibles'])->name('mecanicosDisponibles');
     }
 );
 require __DIR__ . '/auth.php';

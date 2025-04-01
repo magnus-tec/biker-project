@@ -10,5 +10,5 @@ class ServiceSale extends Model
     use HasFactory;
 
     protected $table = 'services_sales';
-    protected $fillable = ['name', 'default_price'];
+    protected $fillable = ['code_sku', 'name', 'default_price'];
 }

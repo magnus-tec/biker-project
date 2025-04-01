@@ -7,6 +7,7 @@
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-800">Registro de Cotizaciones</h2>
             <form class="flex items-center text-xs" id="formBuscarPorFecha">
+
                 <label for="">Desde: </label>
                 <input type="date" name="fecha_desde" id="fecha_desde"
                     class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
@@ -16,6 +17,7 @@
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
                     Buscar
                 </button>
+
             </form>
             <a href="{{ route('quotations.create') }}"
                 class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-all duration-300">
@@ -101,7 +103,7 @@
 
             <!-- Tabla de Productos y Servicios -->
             <div class="mt-4">
-                <h3 class="text-md font-semibold text-gray-700">Detalles de la Compra</h3>
+                <h3 class="text-md font-semibold text-gray-700">Detalles de la Cotizacion</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full  text-left text-gray-700 border border-gray-300 mt-2">
                         <thead class="bg-gray-100 border-b border-gray-300">
@@ -121,7 +123,7 @@
             </div>
 
             <!-- Total -->
-            <div class="mt-4 text-right font-semibold">
+            <div class="mt-4  font-semibold">
                 <p>SubTotal: S/ <input type="text" id="ventaSubTotal" class="border px-2 w-20 bg-gray-200" readonly>
                 </p>
                 <p>IGV: S/ <input type="number" id="ventaIGV" value="0" step="0.01" class="border px-2 w-20"
@@ -209,8 +211,8 @@
                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                                 onclick="verDetalles(${sale.id})">Ver Detalles</button>
-                                <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                                onclick="editQuotation(${sale.id})">Editar</button>
+                                <button class=" text-white px-2 py-1 rounded  ${sale.status_sale == '0' ? 'bg-yellow-500' : 'bg-blue-500'}"
+                                onclick="editQuotation(${sale.id})"  ${sale.status_sale == '0' ? '' : 'disabled'}>Editar</button>
                             <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                         onclick="deleteQuotation(${sale.id})">Eliminar</button>
                         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"

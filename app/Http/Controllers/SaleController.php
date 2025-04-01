@@ -27,7 +27,9 @@ class SaleController extends Controller
      */
     public function index()
     {
-        return view('sales.index');
+        $documentTypes = DocumentType::whereIn('name', ['FACTURA', 'BOLETA DE VENTA', 'NOTA DE VENTA'])->get();
+
+        return view('sales.index', compact('documentTypes'));
     }
     public function detallesVenta($id)
     {
@@ -73,7 +75,7 @@ class SaleController extends Controller
                 'code' => $this->generateCode(),
                 'total_price' => $request->total,
                 'customer_names_surnames' => $request->customer_names_surnames,
-                'customer_address' => $request->customer_adress,
+                'customer_address' => $request->customer_address,
                 'customer_dni' => $request->customer_dni,
                 'igv' => $request->igv,
                 'serie' => $this->generateSerie($request->document_type_id),
@@ -84,20 +86,21 @@ class SaleController extends Controller
                 'payments_id' => $request->payments_id,
 
             ]);
+            // return response()->json($sale);
             // Insertar Productos
             if (!empty($request->products)) {
                 foreach ($request->products as $product) {
                     $salesItem = SalesItem::create([
                         'sale_id'    => $sale->id,
                         'item_type'  => Product::class,
-                        'item_id'    => $product['product_id'],
+                        'item_id'    => $product['item_id'],
                         'quantity'   => $product['quantity'],
                         'unit_price' => $product['unit_price'],
                     ]);
 
                     // Descontar la cantidad del stock
                     if ($salesItem) {
-                        $productId = $product['product_id'];
+                        $productId = $product['item_id'];
                         $quantity = $product['quantity'];
 
                         // Actualizar el stock
@@ -114,9 +117,15 @@ class SaleController extends Controller
             if (!empty($request->services)) {
                 foreach ($request->services as $service) {
                     $serviceModel = ServiceSale::firstOrCreate(
-                        ['name' => ucfirst(strtolower($service['name']))],
-                        ['default_price' => $service['price']]
+                        [
+                            'name' => ucfirst(strtolower($service['name'])) // Se busca por 'name'
+                        ],
+                        [
+                            'code_sku' => $this->generateCodeService(), // Se asigna si no existe
+                            'default_price' => (float) $service['price'] // Convertir a float
+                        ]
                     );
+
                     SalesItem::create([
                         'sale_id'    => $sale->id,
                         'item_type'  => ServiceSale::class,
@@ -126,15 +135,6 @@ class SaleController extends Controller
                     ]);
                 }
             }
-
-            // if ($sale) {
-            //     return response()->json(['success' => 'Venta creada correctamente'], 200);
-
-            // }
-
-
-
-
 
             //consultando la empresa a emitir el documento
             $company = Company::find($request->companies_id);
@@ -155,7 +155,7 @@ class SaleController extends Controller
             $cliente = [
                 "num_doc" => $sale->customer_dni,
                 "rzn_social" => $sale->customer_names_surnames,
-                "direccion" => $sale->customer_address
+                "direccion" => !empty($sale->customer_address) ? $sale->customer_address : ""
             ];
 
             //datos productos
@@ -164,12 +164,12 @@ class SaleController extends Controller
 
             foreach ($saleItems as $product) {
                 $products[] = [
-                    "cod_producto" => $product->item->code_bar, // preguntar si es code_sku o code_bar o code interno
+                    "cod_producto" => $product->item->code_sku, // preguntar si es code_sku o code_bar o code interno
                     "cod_sunat" => "",
                     "unidad" => "NIU",
                     "precio" => $product->unit_price,
                     "cantidad" => $product->quantity,
-                    "descripcion" => $product->item->description
+                    "descripcion" => !empty($product->item->description) ? $product->item->description : $product->item->name
                 ];
             }
             // return response()->json($products);
@@ -198,49 +198,7 @@ class SaleController extends Controller
                 "detalles" => $products
             ];
 
-            // return $data;
-
-            /*$response = Http::withOptions([
-                //'verify' => false // Deshabilita la verificación SSL
-            ])->post('https://magustechnologies.com/apisunat/api/generar/comprobante/electronico', [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Cookie' => 'PHPSESSID=u6603e0sdde4kjg9vh5h8m9479'
-                ],
-                'json' => $data
-            ]);
-
-            dd([
-                'status' => $response->status(),
-                'headers' => $response->headers(),
-                'body' => $response->body(), // Ver el contenido real sin procesar
-            ]);
-
-            $body = $response->body();
-
-            // Eliminar el primer carácter si es "©"
-            if (substr($body, 0, 3) === "©") {
-                $body = substr($body, 3);
-            }
-            // Decodificar la respuesta
-            $result = json_decode($body, true);
-            //$result = $response->json();
-            dd($result);
-
-            if ($response->successful()) {
-                dd($response->json()); // Muestra el JSON de respuesta
-            } else {
-                dd([
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                    'error' => $response->reason()
-                ]);
-            }*/
-
-            //return $result;
-
-            // Mostrar la respuesta
-
+            return response()->json($data);
             $ch = curl_init();
 
             curl_setopt($ch, CURLOPT_URL, "https://magustechnologies.com/apisunat/api/generar/comprobante/electronico");
@@ -259,18 +217,15 @@ class SaleController extends Controller
 
             $response = ltrim($response, "\u{00A9}");
             $response = ltrim($response, "©");
-
             // Decodificar la respuesta JSON
             $body = json_decode($response, true);
-            // return $body;
+            return $body;
             $xmlContent = $body['data']['contenido_xml']; // Extraer el XML de la respuesta
             $nombre_archivo = $body['data']['nombre_archivo'];
             $hash = $body['data']['hash'];
             $qr_info = $body['data']['qr_info'];
             // Guardar el XML en storage/app/xmls/archivo.xml
             Storage::put("xmls/$nombre_archivo.xml", $xmlContent);
-
-
             $saleSunat = SalesSunat::create([
                 'sale_id' => $sale->id,
                 'hash' => $hash,
@@ -348,11 +303,21 @@ class SaleController extends Controller
         $ventas = Sale::with('userRegister')
             ->whereDate('fecha_registro', '>=', $request->fecha_desde)
             ->whereDate('fecha_registro', '<=', $request->fecha_hasta);
+
+        if ($request->filled('document_type_id')) {
+            $ventas->where('document_type_id', $request->document_type_id);
+        }
         return response()->json($ventas->get());
     }
     public function generateCode()
     {
         $lastCodigo = Sale::max('code') ?? '0000000';
+        $nextCodigo = intval($lastCodigo) + 1;
+        return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
+    }
+    public function generateCodeService()
+    {
+        $lastCodigo = ServiceSale::max('code_sku') ?? '0000000';
         $nextCodigo = intval($lastCodigo) + 1;
         return str_pad($nextCodigo, 7, '0', STR_PAD_LEFT);
     }

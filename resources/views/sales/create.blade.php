@@ -17,10 +17,10 @@
                     class="w-full p-2 border rounded mb-2">
 
                 <!-- Botón que abre el modal -->
-                <button class="bg-yellow-400 p-2 rounded" id="openModal">Consultar Productos</button>
+                <button class="bg-yellow-400 p-2 rounded" id="buscarProductos">Consultar Productos</button>
                 <div class="relative">
                     <label for="service" class="block font-medium text-gray-700">Servicio</label>
-                    <input type="text" id="service" name="service"
+                    <input type="text" id="service" name="service" value="{{ old('service', 'TALLER') }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm" autocomplete="off">
 
                     <!-- Dropdown de Sugerencias -->
@@ -32,7 +32,7 @@
 
                 <div class="mt-3">
                     <label for="service_price" class="block font-medium text-gray-700">Precio del Servicio</label>
-                    <input type="number" id="service_price" name="service_price"
+                    <input type="number" id="service_price" name="service_price" value="{{ old('service_price', 60) }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
 
@@ -40,7 +40,7 @@
                     Servicio</button>
 
                 <!-- Modal -->
-                <div id="modal"
+                <div id="buscarProductosModal"
                     class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 hidden">
                     <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full">
                         <h3 class="text-lg font-bold mb-4">Productos</h3>
@@ -92,7 +92,8 @@
                         </div>
 
                         <!-- Botón de cerrar modal -->
-                        <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded" id="closeModal">Cerrar</button>
+                        <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+                            onclick="closeModal('buscarProductosModal')">Cerrar</button>
                     </div>
                 </div>
             </div>
@@ -161,7 +162,7 @@
                 </div>
                 <div class="mt-4">
                     <!-- Botón para guardar la orden -->
-                    <button id="saveOrder" class="bg-blue-500 text-white p-2 rounded">Guardar</button>
+                    <button class="bg-blue-500 text-white p-2 rounded" onclick="saveSales()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -209,28 +210,11 @@
 
 <script>
     let services = [];
-    const totalAmountEl = document.getElementById("totalAmount");
-    let orderCount = 0; // para numerar los ítems
-    let allProducts = []; // Todos los productos obtenidos de la API
-    let products = []; // Productos disponibles en el modal
-    const openModalBtn = document.getElementById("openModal");
-    const closeModalBtn = document.getElementById("closeModal");
-    // Variables del modal y productos
-    const modal = document.getElementById("modal");
+    let quotationItems = [];
     const searchInput = document.getElementById("searchProduct");
-    const btnBuscarProduct = document.getElementById("btnBuscarProduct");
-    const productTable = document.getElementById("productTable");
-
-    // Variables de la tabla de pedido
+    let orderCount = 0; // para numerar los ítems
+    const totalAmountEl = document.getElementById("totalAmount");
     const orderTableBody = document.getElementById("orderTableBody");
-
-    // Variables de los datos de la orden
-    const paymentMethodSelect = document.getElementById("paymentMethod");
-    const paymentTypeSelect = document.getElementById("paymentType");
-
-    const orderDateInput = document.getElementById("orderDate");
-    const orderCurrencyInput = document.getElementById("orderCurrency");
-    const saveOrderBtn = document.getElementById("saveOrder");
     /// AGREGANDO SERVICIOS
     document.getElementById("addService").addEventListener("click", function() {
         let serviceName = document.getElementById("service").value.trim();
@@ -249,81 +233,287 @@
 
         services.push(newService); // Agregar al array
         updateTable(); // Refrescar la tabla
+        updateInformationCalculos();
 
         // Limpiar inputs
         document.getElementById("service").value = "";
         document.getElementById("service_price").value = "";
-        updateTotalAmount();
     });
+    // modal
+    function openModal(modalId, callback) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove("hidden");
+            if (callback) callback();
+        }
+    }
 
-    function addProductToOrder(product) {
-        // Eliminar fila "No hay productos agregados" si existe
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add("hidden");
+        }
+    }
+
+
+    function fetchProducts() {
+        const almacen = document.getElementById("almacen").value;
+        const search = searchInput.value;
+        // Realizar la solicitud a la API
+        fetch('/api/product?almacen=' + almacen + '&search=' + search)
+            .then(res => res.json())
+            .then(data => {
+                let allProducts = data
+                    .filter(product => !quotationItems.some(item => item.item_id === product.id))
+                    .map(product => ({
+                        ...product,
+                        selectedQuantity: 1,
+                        selectedPrice: ""
+                    }));
+                products = [...allProducts];
+                console.log(products)
+                renderProducts(products);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    // productos
+    document.getElementById("buscarProductos").addEventListener("click", () => {
+        openModal("buscarProductosModal", () => {
+            fetchProducts();
+        });
+    });
+    // // Renderiza la lista de productos en el modal
+    function renderProducts(productList) {
+        productTable.innerHTML = "";
+        productList.forEach(product => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                    <td class="px-2 py-1 border">${product.code_sku}</td>
+                    <td class="px-2 py-1 border">${product.description}</td>
+                    <td class="px-2 py-1 border">${product.location}</td>
+                    <td class="px-2 py-1 border">${product.stock.quantity}</td>
+                    <td class="px-2 py-1 border">${product.stock.minimum_stock}</td>
+                    <td class="px-2 py-1 border">
+                        <input type="number" class="p-2 border rounded data-quantity-id-${product.id} value="1" min="1" max="${product.stock.quantity}" data-product-id="${product.id}">
+                    </td>
+                    <td class="px-2 py-1 border">
+                        <select class="p-2 border rounded data-price-id-${product.id}" data-product-id="${product.id}">
+                            <option value="">Seleccionar precio</option>
+                            ${product.prices.map(price => `<option value="${price.price}" data-price-id="${price.id}">${price.type} - ${price.price}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="px-2 py-1 border subtotal-cell" id="subtotal-${product.id}">0</td>
+                    <td class="px-2 py-1 border">
+                        <button class="bg-blue-500 text-white px-3 py-1 rounded" data-product-id="${product.id}"  onclick="agregarProducto(${product.id})">Agregar</button>
+                    </td>
+                `;
+            productTable.appendChild(row);
+            addSubtotalEvents(row, product.id);
+
+        });
+    }
+    // calcular subtotal de productos en el modal y tabla
+    function addSubtotalEvents(row, productId) {
+        const quantity = row.querySelector(`.data-quantity-id-${productId}`);
+        const priceSelect = row.querySelector(`.data-price-id-${productId}`);
+
+        quantity.addEventListener("input", () => updateModalSubtotal(productId, quantity, priceSelect));
+        priceSelect.addEventListener("change", () => updateModalSubtotal(productId, quantity, priceSelect));
+    }
+
+    function updateModalSubtotal(productId, quantityInput, priceSelect) {
+        const quantity = parseInt(quantityInput.value) || 0;
+        const price = parseFloat(priceSelect.value) || 0;
+        const subtotal = quantity * price;
+        const subtotalElement = document.getElementById(`subtotal-${productId}`);
+
+        if (subtotalElement) {
+            subtotalElement.textContent = subtotal.toFixed(2);
+        }
+    }
+
+    //agregar productos
+    function agregarProducto(productId) {
+        const quantity = document.querySelector(`.data-quantity-id-${productId}`).value;
+        const priceSelect = document.querySelector(`.data-price-id-${productId}`);
+        const selectOptionPriceId = priceSelect.options[priceSelect.selectedIndex];
+        const selectedPriceId = selectOptionPriceId.getAttribute("data-price-id");
+        const response = products.find(product => product.id == productId);
+        if (response) {
+            const product = {
+                item_id: productId,
+                description: response.description,
+                priceId: selectedPriceId,
+                unit_price: priceSelect.value,
+                prices: response.prices,
+                quantity: quantity,
+                maximum_stock: response.stock.quantity,
+            }
+            const productCopy = {
+                ...product
+            };
+            delete productCopy.prices;
+            quotationItems.push(productCopy);
+            addProductTo(product);
+            updateInformationCalculos();
+
+        }
+        products = products.filter(product => product.id != productId)
+        const row = priceSelect.closest("tr");
+        console.log(quotationItems);
+        row.style.display = "none";
+    }
+
+    function addProductTo(product) {
         const emptyRow = document.getElementById("emptyRow");
         if (emptyRow) {
             emptyRow.remove();
         }
         orderCount++;
         const orderRow = document.createElement("tr");
-        orderRow.setAttribute("data-product-id", product.id);
+        orderRow.setAttribute("data-product-id", product.item_id);
         orderRow.innerHTML = `
-                <td class="border p-2 text-center">${orderCount}</td>
-                <td class="border p-2">${product.description}</td>
-                <td class="border p-2">
-                    <input type="number" class="p-2 border rounded order-quantity" value="${product.selectedQuantity}" min="1" max="${product.stock.quantity}" style="width: 60px;">
-                </td>
-                <td class="border p-2">
-                    <select class="p-2 border rounded order-price" data-product-id="${product.id}" style="width: 120px;">
-                        <option value="">Seleccionar precio</option>
-                        ${product.prices.map(price => `<option value="${price.price}" ${price.price == product.selectedPrice ? 'selected' : ''}>${price.type} - ${price.price}</option>`).join('')}
-                    </select>
-                </td>
-                <td class="border p-2 order-total" style="text-align: right;">0.00</td>
-                <td class="border p-2 order-subtotal" style="text-align: right;">0.00</td>
-                <td class="border p-2 text-center">
-                    <button class="bg-red-500 text-white px-2 py-1 rounded eliminar-btn" data-product-id="${product.id}">Eliminar</button>
-                </td>
-            `;
+            <td class="border p-2 text-center">${orderCount}</td>
+            <td class="border p-2">${product.description}</td>
+            <td class="border p-2">
+                <input type="number" class="p-2 border rounded data-quantity-value-${product.item_id}" onchange="updatePriceAndTotal(${product.item_id})"
+                       value="${product.quantity}" 
+                       max="${product.maximum_stock}"
+                       min="1"
+                       style="width: 60px;">
+            </td>
+            <td class="border p-2">
+                <select class="p-2 border rounded data-price-select-${product.item_id}" 
+                        style="width: 120px;" onchange="updatePriceAndTotal(${product.item_id})">
+                    <option value="">Seleccionar precio</option>
+                    ${product.prices.map(precio => `
+                        <option value="${precio.price}" 
+                                data-price-id="${precio.id}" 
+                                ${precio.id == product.priceId ? 'selected' : ''}>
+                            ${precio.type} - ${precio.price}
+                        </option>`).join('')}
+                </select>
+            </td>
+            <td class="border p-2 data-price-value-${product.item_id}" style="text-align: right;">${product.unit_price}</td>
+            <td class="border p-2 data-total-value-${product.item_id}" style="text-align: right;">${product.unit_price * product.quantity}</td>
+            <td class="border p-2 text-center">
+                <button class="bg-red-500 text-white px-2 py-1 rounded eliminar-btn" 
+                       onclick="deleteProduct(${product.item_id})">
+                    Eliminar
+                </button>
+            </td>
+        `;
         orderTableBody.appendChild(orderRow);
-        updateOrderRow(orderRow);
-        updateTotalAmount();
-
-        // Eventos para edición en la tabla de pedido
-        const qtyInput = orderRow.querySelector(".order-quantity");
-        const priceSelect = orderRow.querySelector(".order-price");
-        qtyInput.addEventListener("input", () => {
-            updateOrderRow(orderRow);
-            updateTotalAmount();
-        });
-        priceSelect.addEventListener("change", () => {
-            updateOrderRow(orderRow);
-            updateTotalAmount();
-        });
-
-        // Evento para eliminar el producto de la orden
-        const eliminarBtn = orderRow.querySelector(".eliminar-btn");
-        eliminarBtn.addEventListener("click", () => {
-            const prodId = eliminarBtn.getAttribute("data-product-id");
-            // Eliminar la fila de la orden
-            orderRow.remove();
-            updateTotalAmount();
-            // Reinsertar el producto eliminado en el listado del modal
-            const productToRestore = allProducts.find(p => p.id == prodId);
-            if (productToRestore) {
-                if (!products.find(p => p.id == prodId)) {
-                    products.push(productToRestore);
-                    products.sort((a, b) => a.id - b.id);
-                    renderProducts(products);
-                }
-            }
-            // Si ya no hay filas en la orden, mostrar la fila vacía
-            if (orderTableBody.querySelectorAll("tr[data-product-id]").length === 0) {
-                orderCount = 0;
-                orderTableBody.innerHTML = `<tr id="emptyRow">
-                        <td class="border p-2 text-center" colspan="7">No hay productos agregados</td>
-                    </tr>`;
-            }
-        });
     }
+    // calcular subtotal igv y total
+    function updateInformationCalculos() {
+        let totalAmount = 0;
+        let igvAmount = 0;
+        let subtotalAmount = 0;
+        quotationItems.forEach(item => {
+            totalAmount += item.quantity * item.unit_price;
+        })
+        services.forEach(item => {
+            totalAmount += parseFloat(item.price);
+        })
+        igvAmount = totalAmount * 0.18;
+        subtotalAmount = totalAmount - igvAmount;
+        document.getElementById("subtotalAmount").textContent = "S/ " + subtotalAmount.toFixed(2);
+        document.getElementById("igvAmount").textContent = "S/ " + igvAmount.toFixed(2);
+        document.getElementById("totalAmount").textContent = "S/ " + totalAmount.toFixed(2);
+    }
+
+
+    document.getElementById("btnBuscarProduct").addEventListener("click", () => {
+        fetchProducts();
+    })
+
+    function updatePriceAndTotal(productId) {
+        const quantityInput = document.querySelector(`.data-quantity-value-${productId}`);
+        const priceSelect = document.querySelector(`.data-price-select-${productId}`);
+        const priceValueCell = document.querySelector(`.data-price-value-${productId}`);
+        const totalValueCell = document.querySelector(`.data-total-value-${productId}`);
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const selectedOption = priceSelect.options[priceSelect.selectedIndex];
+        const price = parseFloat(selectedOption.value) || 0;
+        // precio y total en la tabla
+        priceValueCell.textContent = price.toFixed(2);
+        totalValueCell.textContent = (price * quantity).toFixed(2);
+
+        quotationItems.forEach(item => {
+            if (item.item_id == productId) {
+                item.quantity = quantity;
+                item.unit_price = price;
+                item.priceId = parseFloat(selectedOption.dataset.priceId);
+            }
+        })
+        updateInformationCalculos();
+
+    }
+    // eliminar producto
+    function deleteProduct(productId) {
+        quotationItems = quotationItems.filter(product => product.item_id != productId);
+        const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+        if (row) {
+            row.remove();
+        }
+        updateInformationCalculos();
+    }
+
+
+    // // 🔹 Función para construir el objeto de orden
+    function buildOrderData() {
+        return {
+            ...getCustomerData(),
+            products: quotationItems,
+            services: services
+        };
+    }
+    // // Extraer los datos del cliente
+    function getCustomerData() {
+        return {
+            customer_dni: document.getElementById("dni_personal").value.trim(),
+            customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
+            customer_address: document.getElementById("direccion").value.trim(),
+            payment_method_id: document.getElementById("paymentMethod").value,
+            payments_id: document.getElementById("paymentType").value,
+            order_date: document.getElementById("orderDate").value,
+            currency: document.getElementById("orderCurrency").value,
+            document_type_id: document.getElementById("documentType").value,
+            companies_id: document.getElementById("companies_id").value,
+            igv: parseAmount("igvAmount"),
+            total: parseAmount("totalAmount")
+        };
+    }
+    // // Convierte valores monetarios a números
+    function parseAmount(elementId) {
+        return parseFloat(document.getElementById(elementId).textContent.replace("S/ ", "")) || 0;
+    }
+    // guardar cotizacion 
+    async function saveSales() {
+        try {
+            const orderData = buildOrderData();
+
+            const response = await fetch('{{ route('sales.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!response.ok) throw new Error("Error en la petición");
+            const data = await response.json();
+            alert("La Venta se ha guardado correctamente.");
+        } catch (error) {
+            console.error("Error al guardar la orden:", error);
+            alert("Error al guardar la orden.");
+        }
+    }
+
+
+
 
     // Función para actualizar la tabla
     function updateTable() {
@@ -333,12 +523,12 @@
         services.forEach(service => {
             let row = document.createElement("tr");
             row.innerHTML = `
-            <td class="border border-gray-300 px-4 py-2">${service.name}</td>
-            <td class="border border-gray-300 px-4 py-2">${service.price}</td>
-            <td class="border border-gray-300 px-4 py-2">
-                <button class="bg-red-500 text-white px-2 py-1 rounded-md" onclick="deleteService(${service.id})">Eliminar</button>
-            </td>
-        `;
+                    <td class="border border-gray-300 px-4 py-2">${service.name}</td>
+                    <td class="border border-gray-300 px-4 py-2">${service.price}</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        <button class="bg-red-500 text-white px-2 py-1 rounded-md" onclick="deleteService(${service.id})">Eliminar</button>
+                    </td>
+                `;
             tableBody.appendChild(row);
         });
     }
@@ -347,9 +537,8 @@
     function deleteService(id) {
         services = services.filter(service => service.id !== id); // Elimina del array
         updateTable(); // Refrescar la tabla
-        updateTotalAmount();
+        updateInformationCalculos();
     }
-    // FIN DE AGREGAR SERVICIO
     // BUSQUEDA DE SERVICIOS
     document.getElementById("service").addEventListener("input", function() {
         const inputValue = this.value.trim();
@@ -388,232 +577,6 @@
                     dropdown.classList.add("hidden");
                 }
             });
-    });
-    // Actualiza el total general de la orden
-    function updateTotalAmount() {
-        let subtotalTotal = 0;
-        let total = 0;
-        services.forEach(service => {
-            subtotalTotal += parseFloat(service.price);
-        });
-        const rows = orderTableBody.querySelectorAll("tr[data-product-id]");
-        rows.forEach(row => {
-            const subtotal = parseFloat(row.querySelector(".order-subtotal").textContent) || 0;
-            subtotalTotal += subtotal;
-        });
-        let baseSubtotal = subtotalTotal / 1.18;
-        let igv = subtotalTotal - baseSubtotal;
-        document.getElementById("subtotalAmount").textContent = "S/ " + baseSubtotal.toFixed(2);
-        document.getElementById("igvAmount").textContent = "S/ " + igv.toFixed(2);
-        totalAmountEl.textContent = "S/ " + subtotalTotal.toFixed(2);
-    }
-    // Actualiza el subtotal de un renglón en la tabla de pedido
-    function updateOrderRow(row) {
-        const qty = parseFloat(row.querySelector(".order-quantity").value) || 0;
-        const price = parseFloat(row.querySelector(".order-price").value) || 0;
-        const subtotal = qty * price;
-        row.querySelector(".order-total").textContent = subtotal.toFixed(2);
-        row.querySelector(".order-subtotal").textContent = subtotal.toFixed(2);
-    }
-    // FIN DE BUSQUEDA DE SERVICIOS
-    // FIN DE GUARDANDO TODOS LOS SERVICIOS EN UN ARRAY
-    // Abrir y cerrar modal
-    openModalBtn.addEventListener("click", () => {
-        modal.classList.remove("hidden");
-        // Si no hay productos cargados aún, se consultan de la API
-        if (allProducts.length === 0) {
-            fetchProducts();
-        } else {
-            renderProducts(products);
-        }
-    });
-    closeModalBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
-    btnBuscarProduct.addEventListener("click", () => {
-        fetchProducts();
-    })
-
-    function fetchProducts() {
-        const almacen = document.getElementById("almacen").value;
-        const search = searchInput.value;
-        // Realizar la solicitud a la API
-        fetch('/api/product?almacen=' + almacen + '&search=' + search)
-            .then(res => res.json())
-            .then(data => {
-                allProducts = data.map(product => ({
-                    ...product,
-                    selectedQuantity: 1,
-                    selectedPrice: ""
-                }));
-                // Inicialmente, todos los productos están disponibles en el modal
-                products = [...allProducts];
-                renderProducts(products);
-            })
-            .catch(error => console.error('Error:', error));
-    }
-    // Filtrar productos según el término de búsqueda
-    function filterProducts(query) {
-        const filtered = products.filter(product =>
-            product.description.toLowerCase().includes(query.toLowerCase())
-        );
-        renderProducts(filtered);
-    }
-    // Renderiza la lista de productos en el modal
-    function renderProducts(productList) {
-        productTable.innerHTML = "";
-        productList.forEach(product => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                    <td class="px-2 py-1 border">${product.code}</td>
-                    <td class="px-2 py-1 border">${product.description}</td>
-                    <td class="px-2 py-1 border">${product.location}</td>
-                    <td class="px-2 py-1 border">${product.stock.quantity}</td>
-                    <td class="px-2 py-1 border">${product.stock.minimum_stock}</td>
-                    <td class="px-2 py-1 border">
-                        <input type="number" class="p-2 border rounded quantity-input" value="1" min="1" max="${product.stock.quantity}" data-product-id="${product.id}">
-                    </td>
-                    <td class="px-2 py-1 border">
-                        <select class="p-2 border rounded price-select" data-product-id="${product.id}">
-                            <option value="">Seleccionar precio</option>
-                            ${product.prices.map(price => `<option value="${price.price}">${price.type} - ${price.price}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td class="px-2 py-1 border subtotal-cell" id="subtotal-${product.id}">0</td>
-                    <td class="px-2 py-1 border">
-                        <button class="bg-blue-500 text-white px-3 py-1 rounded agregar-btn" data-product-id="${product.id}">Agregar</button>
-                    </td>
-                `;
-            productTable.appendChild(row);
-
-            // Calcular subtotal en el modal
-            const qtyInput = row.querySelector(".quantity-input");
-            const priceSelect = row.querySelector(".price-select");
-            qtyInput.addEventListener("input", () => updateModalSubtotal(product.id, qtyInput,
-                priceSelect));
-            priceSelect.addEventListener("change", () => updateModalSubtotal(product.id, qtyInput,
-                priceSelect));
-        });
-
-        // Asignar evento "Agregar" a cada botón
-        const agregarButtons = document.querySelectorAll(".agregar-btn");
-        agregarButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                const prodId = btn.getAttribute("data-product-id");
-                const product = products.find(p => p.id == prodId);
-                if (product) {
-                    const row = btn.closest("tr");
-                    const qtyInput = row.querySelector(".quantity-input");
-                    const priceSelect = row.querySelector(".price-select");
-                    const quantity = parseInt(qtyInput.value) || 1;
-                    const price = parseFloat(priceSelect.value) || 0;
-                    product.selectedQuantity = quantity;
-                    product.selectedPrice = price;
-                    addProductToOrder(product);
-
-                    // Remover el producto agregado del listado para evitar duplicados
-                    products = products.filter(p => p.id != prodId);
-                    renderProducts(products);
-                }
-            });
-        });
-    }
-    // Calcula y actualiza el subtotal en el modal para un producto
-    function updateModalSubtotal(productId, qtyInput, priceSelect) {
-        const quantity = parseInt(qtyInput.value) || 0;
-        const price = parseFloat(priceSelect.value) || 0;
-        const subtotal = quantity * price;
-        const subtotalEl = document.getElementById(`subtotal-${productId}`);
-        if (subtotalEl) {
-            subtotalEl.textContent = subtotal.toFixed(2);
-        }
-    }
-    // Guardar la orden: recopilar datos y enviar mediante fetch
-    saveOrderBtn.addEventListener("click", () => {
-        // Recopilar datos de la orden
-        const customer_dni = document.getElementById("dni_personal").value;
-        const customer_names_surnames = document.getElementById("nombres_apellidos").value;
-        const customer_adress = document.getElementById("direccion").value;
-        const payment_method_id = paymentMethodSelect.value;
-        const payments_id = paymentTypeSelect.value;
-        const orderDate = orderDateInput.value;
-        const currency = orderCurrencyInput.value;
-        const igv = parseFloat(document.getElementById("igvAmount").textContent.replace("S/ ", "")) || 0;
-        const totalText = totalAmountEl.textContent.replace("S/ ", "");
-        const total = parseFloat(totalText) || 0;
-        const document_type_id = document.getElementById("documentType").value;
-        const companies_id = document.getElementById("companies_id").value;
-
-
-        // Recopilar los productos de la orden
-        const orderRows = orderTableBody.querySelectorAll("tr[data-product-id]");
-        let orderProducts = [];
-        orderRows.forEach(row => {
-            const productId = row.getAttribute("data-product-id");
-            const quantity = parseFloat(row.querySelector(".order-quantity").value) || 0;
-            const unitPrice = parseFloat(row.querySelector(".order-price").value) || 0;
-            const subtotal = parseFloat(row.querySelector(".order-subtotal").textContent) ||
-                0;
-            orderProducts.push({
-                product_id: productId,
-                quantity,
-                unit_price: unitPrice,
-                subtotal
-            });
-        });
-
-        // Construir el objeto a enviar
-        const orderData = {
-            customer_dni,
-            customer_names_surnames,
-            customer_adress,
-            payment_method_id: payment_method_id,
-            payments_id: payments_id,
-            order_date: orderDate,
-            currency,
-            total,
-            igv,
-            document_type_id,
-            products: orderProducts,
-            services: services,
-            companies_id
-        };
-
-        // Enviar a "products.store" mediante fetch (POST)
-        fetch('{{ route('sales.store') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(orderData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Error en la petición");
-                }
-                return response.json();
-            })
-            .then(data => {
-                // let base64 = data.base64;
-                // let link = document.createElement("a");
-                // link.href = "data:application/pdf;base64," +
-                //     base64;
-                // link.target = "_blank";
-                // link.click();
-                console.log("Venta guardada:", data);
-                console.log(data)
-                alert("La Venta se ha guardado correctamente.");
-                //location.reload();
-            })
-            .catch(error => {
-                console.error("Error al guardar la Venta:", error);
-                alert("Error al guardar la Venta.");
-            });
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-
     });
     // api dni
     const inputDni = document.getElementById('dni_personal');

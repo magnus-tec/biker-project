@@ -62,8 +62,8 @@
         @endif
 
         <!-- Tabla de registros -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-5 ">
-            <table class="min-w-full divide-y divide-gray-200">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-5 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 ">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -94,7 +94,7 @@
                             Unidad MEDIDA
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Precio Compra
+                            Precio
                         </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
@@ -104,7 +104,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="productsTableBody">
+                <tbody class="bg-white  divide-gray-200 " id="productsTableBody">
                 </tbody>
             </table>
         </div>
@@ -249,8 +249,8 @@
                                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             ${product.images?.length > 0 
                                 ? `<img src="${product.images[0].image_path}" alt="Producto"
-                                                                                                                                                                                                                                                                                                                                    class="w-20 h-20 object-cover rounded-lg cursor-pointer"
-                                                                                                                                                                                                                                                                                                                                    onclick="openModal(${product.id})">`
+                                                                                                                                                                                                                                                                                                                                                                                                        class="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                                                                                                                                                                                                                                                                                                                                                                                                        onclick="openModal(${product.id})">`
                                 : '<span class="text-gray-400">No Image</span>'}
                         </td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.description ?? ''}</td>
@@ -261,7 +261,12 @@
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.warehouse?.name ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.brand?.name ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.unit?.name ?? ''}</td>
-                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${product.prices[0].price ?? ''}</td>
+                                        <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <select class="border border-gray-300 rounded px-2 py-1">
+                                             ${product.prices?.map(price => `<option value="${price.price}">${price.type} - ${price.price}</option>`).join('') || 
+                                             '<option value="">No hay precios disponibles</option>'}
+                                            </select>
+                                        </td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                                             <button type="button" id="btn-${product.id}"
                                                 class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-md ${product.status == 0 ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700'}"

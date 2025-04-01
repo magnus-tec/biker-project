@@ -14,9 +14,22 @@
                     class="w-full p-2 border rounded mb-2">
                 <input type="text" placeholder="Nombre del cliente" id="nombres_apellidos"
                     class="w-full p-2 border rounded mb-2">
-
+                <input type="text" placeholder="Direccion del cliente" id="direccion"
+                    class="w-full p-2 border rounded mb-2">
+                <select name="region" id="regions_id" class="w-3/12 p-2 border rounded">
+                    <option value="todos">Seleccione un Departamento</option>
+                    @foreach ($regions as $region)
+                        <option value="{{ $region->id }}">{{ $region->name }}</option>
+                    @endforeach
+                </select>
+                <select name="" id="provinces_id" class="w-3/12 p-2 border rounded" disabled>
+                    <option value="todos">Seleccione una opción</option>
+                </select>
+                <select name="" id="districts_id" class="w-3/12 p-2 border rounded" disabled>
+                    <option value="todos">Seleccione una opción</option>
+                </select>
                 <!-- Botón que abre el modal -->
-                <button class="bg-yellow-400 p-2 rounded" id="buscarProductos">Consultar Productos</button>
+                <button class="bg-yellow-400 p-2 rounded w-3/12 mt-2" id="buscarProductos">Consultar Productos</button>
                 <div class="relative">
                     <label for="service" class="block font-medium text-gray-700">Servicio</label>
                     <input type="text" id="service" name="service"
@@ -37,7 +50,29 @@
 
                 <button type="button" id="addService" class="bg-blue-500 text-white px-4 py-2 mt-3 rounded-md">Agregar
                     Servicio</button>
+                <div id="modalMecanicos"
+                    class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+                    <div class="bg-white p-6 rounded-lg shadow-md w-1/3">
+                        <h3 class="text-xl font-semibold mb-4">Mecánicos Disponibles</h3>
+                        <div id="listaMecanicosModal"></div>
+                        <button onclick="closeModal('modalMecanicos')"
+                            class="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg">Cerrar</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex mt-2">
+                        <input name="datos_mecanico" id="datos_mecanico" type="text"
+                            class="block w-6/12  border border-gray-300 rounded-md shadow-sm">
+                        <input name="mechanics_id" id="mechanics_id" type="hidden"
+                            class="block w-full  border border-gray-300 rounded-md shadow-sm">
+                        <button onclick="eliminarMecanico()" type="button"
+                            class="px-4 py-2 bg-red-500 text-white rounded-lg mr-11">X</button>
+                        <button onclick="mostrarModal()" type="button"
+                            class="px-4 py-2 bg-green-500 text-white rounded-lg  whitespace-nowrap">Seleccionar
+                            Mecánico</button>
 
+                    </div>
+                </div>
 
                 <!-- Modal -->
                 <div id="buscarProductosModal"
@@ -101,14 +136,62 @@
             <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-lg font-bold mb-4">Documento</h2>
                 <div>
+                    <label class="font-bold">Empresa </label>
+                    <!-- Se agrega id para capturar el valor -->
+                    <select id="companies_id" class="w-full p-2 border rounded">
+                        <option value="">Seleccione</option>
+                        @foreach ($companies as $company)
+                            <option value="{{ $company->id }}">{{ $company->razon_social }} - {{ $company->ruc }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
                     <label class="font-bold">Tipo pago</label>
                     <!-- Se agrega id para capturar el valor -->
                     <select id="paymentType" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
-                        @foreach ($payments as $payment)
+                        @foreach ($paymentsType as $payment)
                             <option value="{{ $payment->id }}">{{ $payment->name }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div>
+                    <label class="font-bold">Método de pago</label>
+                    <select id="paymentMethod1" class="w-full p-2 border rounded">
+                        <option value="">Seleccione</option>
+                        @foreach ($paymentsMethod as $payment)
+                            <option value="{{ $payment->id }}">
+                                {{ $payment->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <input type="text" id="paymentAmount1" placeholder="Monto" hidden
+                        class="w-full p-2 border rounded mt-2" value="">
+                </div>
+
+                <div class="mt-2">
+                    <input type="checkbox" id="togglePaymentFields" class="mr-2">
+                    <label for="togglePaymentFields">Agregar método de pago y monto</label>
+                </div>
+
+                <div id="paymentFieldsContainer" class="mt-2">
+                    <div>
+                        <label class="font-bold">Método de pago</label>
+                        <select id="paymentMethod2" class="w-full p-2 border rounded">
+                            <option value="">Seleccione</option>
+                            @foreach ($paymentsMethod as $payment)
+                                <option value="{{ $payment->id }}">
+                                    {{ $payment->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="font-bold">Monto a pagar</label>
+                        <input type="number" id="paymentAmount2" class="w-full p-2 border rounded"
+                            placeholder="Ingrese el monto" value="">
+                    </div>
                 </div>
                 <div>
                     <label class="font-bold">Tipo de documento</label>
@@ -149,6 +232,16 @@
         <!-- Tabla de Productos (Detalle del Pedido) -->
         <div class="mt-6 bg-white p-6 rounded-lg shadow">
             <h2 class="text-lg font-bold mb-4">Producto</h2>
+            <div class="mb-4 flex items-center justify-end ">
+                <div class="w-5/12">
+                    <input type="text" placeholder="Buscar por nombre del producto..."
+                        class="w-full p-2 border rounded" id="searchProductList">
+                </div>
+                {{-- <div>
+                    <button class="bg-blue-500 text-white px-4 py-2  rounded-md rounded-l-none mr-5"
+                        id="btnBuscarProductList">Buscar</button>
+                </div> --}}
+            </div>
             <table class="w-full border-collapse border border-gray-300" id="orderTable">
                 <thead>
                     <tr class="bg-gray-200">
@@ -196,6 +289,139 @@
     let quotationItems = [];
     let orderTableBody = document.getElementById("orderTableBody");
     let services = [];
+    let payments = [];
+    document.getElementById('togglePaymentFields').addEventListener('change', function() {
+        const container = document.getElementById('paymentFieldsContainer');
+        container.style.display = this.checked ? 'block' : 'none';
+        document.getElementById("paymentMethod2").value = "";
+        document.getElementById("paymentAmount2").value = "";
+    });
+    //AGREGANDO PARA EL MECANICO
+    function seleccionarMecanico(id, datos) {
+        document.getElementById('mechanics_id').value = id;
+        document.getElementById('datos_mecanico').value = datos;
+    }
+
+    function eliminarMecanico() {
+        document.getElementById('mechanics_id').value = '';
+        document.getElementById('datos_mecanico').value = '';
+    }
+
+    function mostrarModal() {
+        document.getElementById('modalMecanicos').classList.remove('hidden');
+        fetch("{{ route('mecanicosDisponibles') }}")
+            .then(response => response.json())
+            .then(data => {
+                let contenedor = document.getElementById('listaMecanicosModal');
+                contenedor.innerHTML = '';
+
+                data.forEach(mecanico => {
+                    let row = `
+                    <div class="flex justify-between items-center p-2 border-b">
+                        <span>${mecanico.name} ${mecanico.apellidos} </span>
+                        <button onclick="seleccionarMecanico(${mecanico.id}, '${mecanico.name} ${mecanico.apellidos}'); cerrarModal()" 
+                            class="px-3 py-1 bg-blue-500 text-white rounded-lg" type="button">
+                            Asignar
+                        </button>
+                    </div>
+                `;
+                    contenedor.innerHTML += row;
+                });
+            });
+    }
+    //agregando buscador 
+    document.getElementById('searchProductList').addEventListener('input', function() {
+        let searchProductList = document.getElementById('searchProductList').value;
+        let filteredItems = quotationItems.filter(item =>
+            item.description.toLowerCase().includes(searchProductList.toLowerCase())
+        );
+        console.log(searchProductList, "searchProductList")
+        console.log(filteredItems, "filteredItems")
+        console.log(quotationItems, "quotationItems")
+        mostrarProductos(filteredItems);
+    })
+
+    function mostrarProductos(items) {
+        let productListContainer = document.getElementById('orderTableBody');
+        productListContainer.innerHTML = ''; // Limpia la tabla
+
+        if (items.length === 0) {
+            productListContainer.innerHTML = `
+            <tr id="emptyRow">
+                <td colspan="7" class="text-center p-2">No hay productos disponibles</td>
+            </tr>
+        `;
+            return;
+        }
+
+        items.forEach(product => {
+            addProductTo(product); // Usa la misma función para crear filas
+        });
+    }
+    // BUSCADOR DEPARTAMENTO PROVINCIA DISTRITO
+    document.getElementById('regions_id').addEventListener('change', function() {
+        const regionId = this.value;
+        if (regionId !== 'Seleccione un Departamento') {
+            fetchProvinces(regionId);
+        } else {
+            clearSelect('provinces_id');
+            clearSelect('districts_id');
+        }
+    });
+    document.getElementById('provinces_id').addEventListener('change', function() {
+        const provinceId = this.value;
+        if (provinceId !== 'todos') {
+            fetchDistricts(provinceId);
+        } else {
+            clearSelect('districts_id');
+        }
+    });
+
+    function fetchProvinces(regionId, provinceId = null) {
+        fetch(`/api/provinces/${regionId}`)
+            .then(response => response.json())
+            .then(data => {
+                const provinceSelect = document.getElementById('provinces_id');
+                provinceSelect.removeAttribute(
+                    'disabled');
+                clearSelect('districts_id');
+                updateSelectOptions('provinces_id', data.provinces, provinceId);
+                console.log('data.provinces', data.provinces);
+            })
+            .catch(error => console.error('Error fetching provinces:', error));
+    }
+
+    function updateSelectOptions(selectId, options, id = null) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="todos">Seleccione una opción</option>';
+        options.forEach(option => {
+            const opt = document.createElement('option');
+            opt.value = option.id;
+            opt.textContent = option.name;
+            if (id !== null && option.id === id) {
+                opt.selected = true;
+            }
+            select.appendChild(opt);
+        });
+    }
+
+    function clearSelect(selectId) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="todos">Seleccione una opción</option>';
+    }
+
+    function fetchDistricts(provinceId, districtId) {
+        fetch(`/api/districts/${provinceId}`)
+            .then(response => response.json())
+            .then(data => {
+                const districtSelect = document.getElementById('districts_id');
+                districtSelect.removeAttribute(
+                    'disabled');
+                updateSelectOptions('districts_id', data.districts, districtId);
+            })
+            .catch(error => console.error('Error fetching districts:', error));
+    }
+
     //SERVICIOS
     //  AGREGANDO SERVICIOS
     document.getElementById("addService").addEventListener("click", function() {
@@ -223,6 +449,37 @@
         document.getElementById("service_price").value = "";
     });
 
+    function quotationPaymentMethods() {
+        payments = [];
+        let paymentMethod1 = document.getElementById('paymentMethod1').value;
+        const totalAmountDiv = document.getElementById('totalAmount');
+        let text = totalAmountDiv.textContent.trim();
+        let paymentAmount1 = parseFloat(text.replace('S/', '').trim()) || 0;
+        let paymentAmount2 = 0;
+        if (document.getElementById('togglePaymentFields').checked) {
+            let paymentMethod2 = document.getElementById('paymentMethod2').value;
+            paymentAmount2 = parseFloat(document.getElementById('paymentAmount2').value) || 0;
+
+            if (paymentMethod2 && paymentAmount2 > 0) {
+                payments.push({
+                    payment_method_id: paymentMethod2,
+                    amount: paymentAmount2,
+                    order: 2
+                });
+            }
+        } else {
+            document.getElementById('paymentMethod2').value = '';
+            document.getElementById('paymentAmount2').value = '';
+        }
+
+        if (paymentMethod1) {
+            payments.push({
+                payment_method_id: paymentMethod1,
+                amount: paymentAmount1 - paymentAmount2,
+                order: 1
+            });
+        }
+    }
     // Función para actualizar la tabla de servicios
     function updateTable() {
         let tableBody = document.getElementById("serviceList");
@@ -305,11 +562,45 @@
             document.getElementById("nombres_apellidos").value = responseQuotation.quotation
                 .customer_names_surnames;
             document.getElementById("dni_personal").value = responseQuotation.quotation.customer_dni;
+            document.getElementById("direccion").value = responseQuotation.quotation.customer_address;
             console.log('responseQuotation', responseQuotation);
-            // document.getElementById("orderDate").value = responseQuotation.quotation.fecha_registro.split(
-            //     " ")[0];
             document.getElementById("documentType").value = responseQuotation.quotation.document_type_id;
-            document.getElementById("paymentType").value = responseQuotation.quotation.payment_method_id;
+            document.getElementById("paymentType").value = responseQuotation.quotation.payments_id;
+            document.getElementById("companies_id").value = responseQuotation.quotation.companies_id;
+            document.getElementById("datos_mecanico").value = responseQuotation.quotation.mechanic.name +
+                ' ' + responseQuotation.quotation.mechanic.apellidos;
+            document.getElementById("mechanics_id").value = responseQuotation.quotation.mechanic.id;
+
+            let regionId = responseQuotation.quotation.district.province.region.id;
+
+            document.getElementById("regions_id").value = regionId;
+            let provinceId = responseQuotation.quotation.district.province.id;
+            let districtId = responseQuotation.quotation.district.id;
+            console.log('regionId', regionId);
+            console.log('provinceId', provinceId);
+            console.log('districtId', districtId);
+            await fetchProvinces(regionId, provinceId);
+            await fetchDistricts(provinceId, districtId);
+
+
+            let metodo1 = responseQuotation.quotation.quotation_payment_method
+                .find(item => item.order === 1)
+            let metodo2 = responseQuotation.quotation.quotation_payment_method
+                .find(item => item.order === 2)
+            if (metodo1) {
+                document.getElementById("paymentMethod1").value = metodo1.payment_method_id;
+                document.getElementById("paymentAmount1").value = metodo1.amount;
+            }
+            if (metodo2) {
+                const togglePaymentFields = document.getElementById("togglePaymentFields").checked = true;
+                const container = document.getElementById('paymentFieldsContainer');
+                container.style.display = togglePaymentFields.checked ? 'none' : 'block';
+
+                document.getElementById("paymentMethod2").value = metodo2.payment_method_id;
+                document.getElementById("paymentAmount2").value = metodo2.amount;
+            }
+
+
             quotationItems = responseQuotation.quotation.quotation_items
                 .filter(item => item.item_type === "App\\Models\\Product")
                 .map(item => ({
@@ -357,6 +648,8 @@
         fetchProducts();
     })
 
+
+
     function addProductTo(product) {
         const emptyRow = document.getElementById("emptyRow");
         if (emptyRow) {
@@ -401,6 +694,7 @@
     //  Guardar la cotizacion
     document.getElementById("save").addEventListener("click", async () => {
         try {
+            quotationPaymentMethods();
             let quotationId = document.getElementById("quotationId").value;
             const orderData = buildOrderData();
 
@@ -429,7 +723,8 @@
         return {
             ...getCustomerData(),
             products: quotationItems,
-            services: services
+            services: services,
+            payments: payments
         };
     }
 
@@ -468,7 +763,7 @@
         productList.forEach(product => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                    <td class="px-2 py-1 border">${product.code}</td>
+                    <td class="px-2 py-1 border">${product.code_sku}</td>
                     <td class="px-2 py-1 border">${product.description}</td>
                     <td class="px-2 py-1 border">${product.location}</td>
                     <td class="px-2 py-1 border">${product.stock.quantity}</td>
@@ -647,10 +942,11 @@
         return {
             customer_dni: document.getElementById("dni_personal").value.trim(),
             customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
-            payment_method_id: document.getElementById("paymentType").value,
-            // order_date: document.getElementById("orderDate").value,
+            // payment_method_id: document.getElementById("paymentType").value,
+            customer_address: document.getElementById("direccion").value.trim(),
             currency: document.getElementById("orderCurrency").value,
             document_type: document.getElementById("documentType").value,
+            companies_id: document.getElementById("companies_id").value,
             igv: parseAmount("igvAmount"),
             total: parseAmount("totalAmount")
         };

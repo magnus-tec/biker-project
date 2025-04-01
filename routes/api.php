@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LocationController;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\Service;
@@ -21,15 +22,31 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+// Route::get('/product', function (Request $request) {
+//     $almacen = $request->input('almacen');
+//     $query = $request->input('search');
+//     if ($almacen !== 'todos') {
+//         $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'stock')->where('description', 'like', "%{$query}%")->where('warehouse_id', $almacen)->get();
+//     } else {
+//         $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'stock')->where('description', 'like', "%{$query}%")->get();
+//     }
+//     return response()->json($productos);
+// });
 Route::get('/product', function (Request $request) {
     $almacen = $request->input('almacen');
     $query = $request->input('search');
+
+    $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'stock')
+        ->where(function ($q) use ($query) {
+            $q->where('code_sku', 'like', "%{$query}%")
+                ->orWhere('code_bar', 'like', "%{$query}%");
+        });
+
     if ($almacen !== 'todos') {
-        $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'stock')->where('description', 'like', "%{$query}%")->where('warehouse_id', $almacen)->get();
-    } else {
-        $productos = Product::with('brand', 'unit', 'warehouse', 'prices', 'stock')->where('description', 'like', "%{$query}%")->get();
+        $productos->where('warehouse_id', $almacen);
     }
-    return response()->json($productos);
+
+    return response()->json($productos->get());
 });
 Route::get('/brands', function (Request $request) {
     $query = $request->input('query');
@@ -42,3 +59,5 @@ Route::get('/services', function (Request $request) {
     $services = ServiceSale::where('name', 'LIKE', "%$query%")->limit(5)->get(['id', 'name', 'default_price']);
     return response()->json($services);
 });
+Route::get('/provinces/{regionId}', [LocationController::class, 'getProvinces']);
+Route::get('/districts/{provinceId}', [LocationController::class, 'getDistricts']);

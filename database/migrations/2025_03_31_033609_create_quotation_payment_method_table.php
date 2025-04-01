@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('services_sales', function (Blueprint $table) {
+        Schema::create('quotation_payment_method', function (Blueprint $table) {
             $table->id();
-            $table->string('code_sku')->unique();
-            $table->string('name')->unique();
-            $table->decimal('default_price', 10, 2)->nullable();
+            $table->foreignId('quotation_id')->constrained()->onDelete('cascade');
+            $table->foreignId('payment_method_id')->constrained()->onDelete('cascade');
+            $table->decimal('amount', 10, 2)->default(0);
+            $table->integer('order');
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('services');
+        Schema::dropIfExists('quotation_payment_method');
     }
 };

@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('services_sales', function (Blueprint $table) {
+        Schema::create('districts', function (Blueprint $table) {
             $table->id();
-            $table->string('code_sku')->unique();
-            $table->string('name')->unique();
-            $table->decimal('default_price', 10, 2)->nullable();
+            $table->string('name');
+            $table->string('ubigeo', 6)->unique();
+            $table->foreignId('provinces_id')->constrained('provinces')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('services');
+        Schema::dropIfExists('districts');
     }
 };

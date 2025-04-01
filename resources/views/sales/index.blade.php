@@ -7,6 +7,14 @@
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-800">Registro de Ventas</h2>
             <form class="flex items-center text-xs" id="formBuscarPorFecha">
+                <select id="document_type_id" class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
+                    <option value="">Todo los documentos</option>
+                    @foreach ($documentTypes as $documentType)
+                        <option value="{{ $documentType->id }}">
+                            {{ $documentType->name }}</option>
+                    @endforeach
+                </select>
+
                 <label for="">Desde: </label>
                 <input type="date" name="fecha_desde" id="fecha_desde"
                     class="border border-gray-300 rounded-lg py-2 px-4 mr-2">
@@ -82,37 +90,40 @@
         @endif --}}
     </div>
     <!-- Modal -->
-    <div id="detalleModal" class="fixed inset-0 bg-black bg-opacity-40 hidden flex justify-center items-center p-4">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+    <div id="detalleModal" class="fixed inset-0 bg-black bg-opacity-30 hidden flex justify-center items-center p-4">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl p-5 border border-gray-300 relative">
             <!-- Botón de Cierre -->
-            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-900 text-2xl">
-                &times;
+            <button onclick="cerrarModal()"
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-900 text-lg font-semibold transition">
+                ✖
             </button>
 
             <!-- Encabezado -->
-            <h2 class="text-xl font-semibold text-gray-800 text-center">Detalles de la Venta</h2>
+            <h2 class="text-sm font-bold text-center pb-3 uppercase tracking-wide text-gray-800 border-b">
+                Detalles de la Venta
+            </h2>
 
             <!-- Información General -->
-            <div class="mt-4 space-y-2 text-gray-700 text-sm border-b pb-4">
-                {{-- <p><strong>ID:</strong> <span id="ventaId"></span></p> --}}
+            <div class="mt-3 p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 text-xs space-y-1">
                 <p><strong>Cliente:</strong> <span id="ventaCliente"></span></p>
                 <p><strong>DNI:</strong> <span id="ventaDni"></span></p>
                 <p><strong>Vendedor:</strong> <span id="ventaVendedor"></span></p>
-                <p><strong>Fecha:</strong> <span id="ventaFecha"></span></p>
+                <p><strong>Fecha y hora:</strong> <span id="ventaFecha"></span></p>
             </div>
-
             <!-- Tabla de Productos y Servicios -->
             <div class="mt-4">
-                <h3 class="text-md font-semibold text-gray-700">Detalles de la Compra</h3>
+                <h3 class="text-xs font-semibold border-b pb-1 text-gray-700 uppercase">
+                    Detalles de la Compra
+                </h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-gray-700 border border-gray-300 mt-2">
-                        <thead class="bg-gray-100 border-b border-gray-300">
+                    <table class="w-full text-xs text-left border border-gray-300 mt-2 rounded-lg overflow-hidden">
+                        <thead class="bg-gray-100 text-gray-800 uppercase text-xs">
                             <tr>
-                                <th class="py-2 px-3 border-r border-gray-300">Tipo</th>
-                                <th class="py-2 px-3 border-r border-gray-300">Descripción</th>
-                                <th class="py-2 px-3 text-center border-r border-gray-300">Cantidad</th>
-                                <th class="py-2 px-3 text-center border-r border-gray-300">Precio Unitario</th>
-                                <th class="py-2 px-3 text-center">Total</th>
+                                <th class="py-2 px-2 border-r border-gray-300">Tipo</th>
+                                <th class="py-2 px-2 border-r border-gray-300">Descripción</th>
+                                <th class="py-2 px-2 text-center border-r border-gray-300">Cantidad</th>
+                                <th class="py-2 px-2 text-center border-r border-gray-300">Precio Unitario</th>
+                                <th class="py-2 px-2 text-center">Total</th>
                             </tr>
                         </thead>
                         <tbody id="listaDetalles" class="divide-y divide-gray-300">
@@ -122,25 +133,31 @@
                 </div>
             </div>
 
-            <!-- Total -->
-            <div class="mt-4 text-right text-lg font-semibold">
-                <p>SubTotal: S/. <input type="text" id="ventaSubTotal" class="border px-2 w-20 bg-gray-200" readonly>
-                </p>
-                <p>IGV: S/. <input type="number" id="ventaIGV" value="0" step="0.01" class="border px-2 w-20"
-                        oninput="calcularSubtotal()"></p>
-                <p>Total: S/. <input type="number" id="ventaTotal" value="0" step="0.01"
-                        class="border px-2 w-20" oninput="calcularSubtotal()"></p>
-            </div>
-
-            <!-- Botón Cerrar -->
-            <div class="mt-6 text-center">
-                <button onclick="cerrarModal()"
-                    class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-900 transition">
-                    Cerrar
-                </button>
+            <!-- Totales -->
+            <div class="mt-4 flex justify-end">
+                <div class="p-3 border border-gray-300 rounded-lg w-56 bg-gray-50 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-700">SubTotal:</span>
+                        <input type="text" id="ventaSubTotal"
+                            class="border border-gray-400 px-2 py-1 w-20  rounded bg-white focus:outline-none" readonly>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="font-medium text-gray-700">IGV:</span>
+                        <input type="number" id="ventaIGV" value="0" step="0.01"
+                            class="border border-gray-400 px-2 py-1 w-20 rounded bg-white focus:outline-none"
+                            oninput="calcularSubtotal()">
+                    </div>
+                    <div class="flex justify-between items-center text-sm font-semibold text-gray-900 mt-1">
+                        <span>Total:</span>
+                        <input type="number" id="ventaTotal" value="0" step="0.01"
+                            class="border border-gray-500 px-2 py-1 w-20  rounded bg-white focus:outline-none"
+                            oninput="calcularSubtotal()">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
 
 
 
@@ -153,8 +170,9 @@
         function finAllSales() {
             let desde = document.getElementById('fecha_desde').value;
             let hasta = document.getElementById('fecha_hasta').value;
+            let document_type_id = document.getElementById('document_type_id').value;
             fetch(
-                    `{{ route('sales.filtroPorfecha') }}?fecha_desde=${encodeURIComponent(desde)}&fecha_hasta=${encodeURIComponent(hasta)}`
+                    `{{ route('sales.filtroPorfecha') }}?fecha_desde=${encodeURIComponent(desde)}&fecha_hasta=${encodeURIComponent(hasta)}&document_type_id=${encodeURIComponent(document_type_id)}`
                 )
                 .then(response => response.json())
                 .then(data => {
