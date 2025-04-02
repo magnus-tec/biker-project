@@ -27,7 +27,9 @@ class Sale extends Model
         'payment_method_id',
         'document_type_id',
         'companies_id',
-        'payments_id'
+        'payments_id',
+        'districts_id',
+        'mechanics_id'
 
     ];
 

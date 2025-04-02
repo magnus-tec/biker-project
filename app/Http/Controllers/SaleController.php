@@ -7,17 +7,19 @@ use App\Models\DocumentType;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\Region;
 use App\Models\Sale;
+use App\Models\SalePaymentMethod;
 use App\Models\SalesItem;
 use App\Models\SalesSunat;
 use App\Models\Service;
 use App\Models\ServiceSale;
 use App\Models\Stock;
 use App\Models\Warehouse;
+use App\Services\GenerarQR;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class SaleController extends Controller
@@ -45,10 +47,16 @@ class SaleController extends Controller
         if (!$sale) {
             return abort(404, 'Venta no encontrada');
         }
+        $fecha_registro =  Carbon::parse($sale->fecha_registro)->format('Y-m-d');
 
+        // GENERAR QR
+        $hash = hash('sha1', '' . time(), true);
+        $hashBase64 = base64_encode($hash);
+        $generarQr = new GenerarQR($sale->companies->ruc, $sale->documentType->sunat_code, $sale->serie, $sale->number, $sale->igv, $sale->total_price, $fecha_registro, $sale->customer_dni, $hashBase64);
+        $imagenQr = $generarQr->obtenerQR();
         // Si `sale_items` es null, aseguramos que sea un array vacío para evitar errores
         $sale->sale_items = $sale->sale_items ?? [];
-        $pdf = Pdf::loadView('sales.pdf', compact('sale'));
+        $pdf = Pdf::loadView('sales.pdf', compact('sale', 'imagenQr', 'hashBase64'));
         return $pdf->stream('venta.pdf');
     }
     /**
@@ -61,7 +69,9 @@ class SaleController extends Controller
         $paymentsType = Payment::all();
         $documentTypes = DocumentType::whereIn('name', ['FACTURA', 'BOLETA DE VENTA', 'NOTA DE VENTA'])->get();
         $companies = Company::all();
-        return view('sales.create', compact('warehouses', 'paymentsMethod', 'documentTypes', 'companies', 'paymentsType'));
+        $regions = Region::all();
+
+        return view('sales.create', compact('regions', 'warehouses', 'paymentsMethod', 'documentTypes', 'companies', 'paymentsType'));
     }
 
     /**
@@ -69,6 +79,7 @@ class SaleController extends Controller
      */
     public function store(Request $request)
     {
+        // return response()->json($request);
         try {
             // 1️⃣ Crear la Venta
             $sale = Sale::create([
@@ -80,14 +91,23 @@ class SaleController extends Controller
                 'igv' => $request->igv,
                 'serie' => $this->generateSerie($request->document_type_id),
                 'number' => $this->generateNumero($request->document_type_id),
-                'payment_method_id' => $request->payment_method_id,
                 'document_type_id' => $request->document_type_id,
                 'companies_id' => $request->companies_id,
                 'payments_id' => $request->payments_id,
+                'mechanics_id' => $request->mechanics_id,
+                'districts_id' => $request->districts_id,
 
             ]);
-            // return response()->json($sale);
-            // Insertar Productos
+            if (!empty($request->payments)) {
+                foreach ($request->payments as $payment) {
+                    SalePaymentMethod::create([
+                        'sale_id' => $sale->id,
+                        'payment_method_id' => $payment['payment_method_id'],
+                        'amount' => floatval($payment['amount']),
+                        'order' => intval($payment['order'])
+                    ]);
+                }
+            }
             if (!empty($request->products)) {
                 foreach ($request->products as $product) {
                     $salesItem = SalesItem::create([
@@ -132,6 +152,8 @@ class SaleController extends Controller
                         'item_id'    => $serviceModel->id,
                         'quantity'   => 1,
                         'unit_price' => $service['price'],
+                        'product_prices_id' => NULL,
+                        'mechanics_id' => $request->mechanics_id,
                     ]);
                 }
             }
@@ -172,17 +194,7 @@ class SaleController extends Controller
                     "descripcion" => !empty($product->item->description) ? $product->item->description : $product->item->name
                 ];
             }
-            // return response()->json($products);
-            // $total = 118;
-            // $fechaEmision = "2023-07-25";
-            // $fechaVencimiento = "2023-08-25";
-            // $documento = "factura";
-            // $serie = "F001";
-            // $numero = "2";
-            // $formaPago = "contado";
-            // $moneda = "PEN";
 
-            // return strtolower($sale->documentType->name);
             $data = [
                 "total" => $sale->total_price,
                 "endpoint" => "beta",
@@ -198,7 +210,7 @@ class SaleController extends Controller
                 "detalles" => $products
             ];
 
-            return response()->json($data);
+            // return response()->json($data);
             $ch = curl_init();
 
             curl_setopt($ch, CURLOPT_URL, "https://magustechnologies.com/apisunat/api/generar/comprobante/electronico");
@@ -219,7 +231,7 @@ class SaleController extends Controller
             $response = ltrim($response, "©");
             // Decodificar la respuesta JSON
             $body = json_decode($response, true);
-            return $body;
+            // return $body;
             $xmlContent = $body['data']['contenido_xml']; // Extraer el XML de la respuesta
             $nombre_archivo = $body['data']['nombre_archivo'];
             $hash = $body['data']['hash'];
@@ -232,6 +244,7 @@ class SaleController extends Controller
                 'qr_info' => $qr_info,
                 'name_xml' => $nombre_archivo
             ]);
+
             if ($saleSunat) {
                 return response()->json(['success' => 'Venta guardada correctamente'], 200);
             }

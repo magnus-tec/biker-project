@@ -82,7 +82,7 @@ class QuotationController extends Controller
             return response()->json(['error' => 'Faltan parámetros'], 400);
         }
         $user = auth()->user();
-        $ventas = Quotation::with('userRegister')
+        $ventas = Quotation::with('userRegister', 'mechanic')
             ->whereDate('fecha_registro', '>=', $request->fecha_desde)
             ->whereDate('fecha_registro', '<=', $request->fecha_hasta);
         return response()->json($ventas->get());
@@ -421,7 +421,10 @@ class QuotationController extends Controller
                 // 'payment_method_id' => $request->payment_method_id,
                 'fecha_actualizacion' => now()->setTimezone('America/Lima'),
                 'user_update' => auth()->user()->id,
-                'companies_id' => $request->companies_id
+                'companies_id' => $request->companies_id,
+                'payments_id' => $request->payments_id,
+                'mechanics_id' => $request->mechanics_id,
+                'districts_id' => $request->districts_id,
             ]);
 
             QuotationPaymentMethod::where('quotation_id', $quotation->id)->delete();
@@ -471,7 +474,9 @@ class QuotationController extends Controller
                         'item_id'    => $serviceModel->id,
                         'quantity'   => 1,
                         'unit_price' => $service['price'],
-                        'product_prices_id' => NULL
+                        'product_prices_id' => NULL,
+                        'mechanics_id' => $request->mechanics_id,
+
                     ]);
                 }
             }

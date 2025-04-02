@@ -53,7 +53,9 @@
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Vendedor
                         </th>
-
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Mecanico
+                        </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             SubTotal
                         </th>
@@ -195,6 +197,9 @@
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${sale.customer_dni}</td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             ${sale.user_register == null ? 'Sin vendedor' : sale.user_register.name} 
+                        </td>
+                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                            ${sale.mechanic == null ? 'Sin mecanico' : sale.mechanic.name} 
                         </td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             ${( (Number(sale.total_price) || 0) - (Number(sale.igv) || 0) ).toFixed(2)}

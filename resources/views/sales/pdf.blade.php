@@ -20,7 +20,7 @@
         .header {
             display: table;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 3px;
         }
 
         .logo {
@@ -147,7 +147,7 @@
             <tbody>
                 @if (isset($sale->saleItems) && is_iterable($sale->saleItems))
                     @php
-                        $totalRows = 38;
+                        $totalRows = 33;
                         $rowCount = 0;
                     @endphp
 
@@ -210,24 +210,42 @@
 
         </table>
 
-
-
-        <!-- Totales -->
-        <table class="totals">
+        <!-- Pie de Página -->
+        <table style="width:100%;margin-top:50px">
             <tr>
-                <td>Total Op. Gravado:</td>
-                <td>S/ {{ number_format($sale->total_price - $sale->igv, 2) }}</td>
-            </tr>
-            <tr>
-                <td>IGV:</td>
-                <td>S/ {{ number_format($sale->igv, 2) }}</td>
-            </tr>
-            <tr>
-                <td><strong>Total a Pagar:</strong></td>
-                <td><strong>S/ {{ number_format($sale->total_price, 2) }}</strong></td>
+                <td style="width: 20%;">
+                    @if ($sale->document_type_id != 6)
+                        <img src="{{ $imagenQr }}" alt="Código QR" width="100%">
+                    @endif
+                </td>
+                <td style="width: 50%;">
+                    {{-- <p><strong>¡GRACIAS POR SU PREFERENCIA! ¡DIOS LES BENDIGA!</strong></p> --}}
+                    <div style="width:79%;float: right;font-size: 12px;">
+                        Consulte su comprobante: <br>
+                        <a href="http://www.sunat.gob.pe/ol-ti-itconsvalicpe/ConsValiCpe.htm"
+                            style="text-decoration: none;color:#000"><strong>http://www.sunat.gob.pe/ol-ti-itconsvalicpe/ConsValiCpe.htm</strong></a>
+                        <br /><br />Código Hash:<br />
+                        <strong>{{ $hashBase64 }}</strong>
+                    </div>
+                </td>
+                <td style="width: 40%;">
+                    <table class="totals">
+                        <tr>
+                            <td>Total Op. Gravado:</td>
+                            <td>S/ {{ number_format($sale->total_price - $sale->igv, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>IGV:</td>
+                            <td>S/ {{ number_format($sale->igv, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total a Pagar:</strong></td>
+                            <td><strong>S/ {{ number_format($sale->total_price, 2) }}</strong></td>
+                        </tr>
+                    </table>
+                </td>
             </tr>
         </table>
-        <!-- Pie de Página -->
     </div>
 </body>
 

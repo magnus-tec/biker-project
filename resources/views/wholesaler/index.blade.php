@@ -53,7 +53,9 @@
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Vendedor
                         </th>
-
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Mecanico
+                        </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             SubTotal
                         </th>
@@ -169,6 +171,9 @@
                             ${mayorista.user_register == null ? 'Sin vendedor' : mayorista.user_register.name} 
                         </td>
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                            ${mayorista.mechanic == null ? 'Sin mecanico' : mayorista.mechanic.name} 
+                        </td>
+                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
                             ${( (Number(mayorista.total_price) || 0) - (Number(mayorista.igv) || 0) ).toFixed(2)}
                         </td>
 
@@ -181,14 +186,14 @@
                        
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${mayorista.fecha_registro}</td>
                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                                onclick="verDetalles(${mayorista.id})">Ver Detalles</button>
-                                <button class=" text-white px-2 py-1 rounded  ${mayorista.status_sale == '0' ? 'bg-yellow-500' : 'bg-blue-500'}"
-                                onclick="editWholesaler(${mayorista.id})"  ${mayorista.status_sale == '0' ? '' : 'disabled'}>Editar</button>
-                            <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        onclick="deleteWholesaler(${mayorista.id})">Eliminar</button>
-                        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        onclick="generarPDF(${mayorista.id})">PDF</button>
+                            <button class=" text-white px-2 py-1 rounded"
+                                onclick="verDetalles(${mayorista.id})"><i class="bi bi-eye-fill text-blue-500"></i></button>
+                                <button class="px-2 py-1 rounded "
+                                onclick="editWholesaler(${mayorista.id})"  ${mayorista.status_sale == '0' ? '' : 'disabled'}><i class="bi bi-pencil-square  ${mayorista.status_sale == '0' ? 'text-yellow-500' : 'text-blue-500'}"></i></button>
+                            <button class="px-2 py-1 rounded hover:bg-blue-700"
+                        onclick="deleteWholesaler(${mayorista.id})"><i class="bi bi-trash3-fill text-red-500"></i></button>
+                        <button class=" px-2 py-1 rounded "
+                        onclick="generarPDF(${mayorista.id})"><i class="bi bi-filetype-pdf text-red-500"></i></button>
                     `;
                             tbody.appendChild(row);
                         });

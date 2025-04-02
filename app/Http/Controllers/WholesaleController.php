@@ -74,7 +74,7 @@ class WholesaleController extends Controller
         if (!$request->filled('fecha_desde') || !$request->filled('fecha_hasta')) {
             return response()->json(['error' => 'Faltan parámetros'], 400);
         }
-        $mayorista = Wholesaler::with('userRegister')
+        $mayorista = Wholesaler::with('userRegister', 'mechanic')
             ->whereDate('fecha_registro', '>=', $request->fecha_desde)
             ->whereDate('fecha_registro', '<=', $request->fecha_hasta);
         return response()->json($mayorista->get());
