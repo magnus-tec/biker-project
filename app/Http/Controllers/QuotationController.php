@@ -15,6 +15,7 @@ use App\Models\QuotationItem;
 use App\Models\QuotationPaymentMethod;
 use App\Models\Region;
 use App\Models\Sale;
+use App\Models\SalePaymentMethod;
 use App\Models\SalesItem;
 use App\Models\SalesSunat;
 use App\Models\Service;
@@ -142,7 +143,6 @@ class QuotationController extends Controller
                 'igv' => $request->igv,
                 'document_type_id' => $request->document_type_id,
                 'districts_id' => $request->districts_id,
-                // 'payment_method_id' => $request->payment_method_id,
                 'companies_id' => $request->companies_id,
                 'payments_id' => $request->payments_id,
                 'mechanics_id' => $request->mechanics_id,
@@ -217,7 +217,7 @@ class QuotationController extends Controller
     // }
     public function vender(string $id)
     {
-        $cotizacion = Quotation::with('quotationItems')->find($id);
+        $cotizacion = Quotation::with('quotationItems', 'userRegister', 'quotationPaymentMethod',)->find($id);
         if (!$cotizacion) {
             return response()->json(['error' => 'Cotización no encontrada'], 404);
         }
@@ -236,12 +236,23 @@ class QuotationController extends Controller
                 'quotation_id' => $cotizacion->id,
                 'serie' => $this->generateSerie($cotizacion->document_type_id),
                 'number' => $this->generateNumero($cotizacion->document_type_id),
-                'payment_method_id' => $cotizacion->payment_method_id,
                 'document_type_id' => $cotizacion->document_type_id,
                 'companies_id' => $cotizacion->companies_id,
                 'payments_id' => $cotizacion->payments_id,
-
+                'districts_id' => $cotizacion->districts_id,
+                'mechanics_id' => $cotizacion->mechanics_id,
             ]);
+
+            if (!empty($cotizacion->quotationPaymentMethod)) {
+                foreach ($cotizacion->quotationPaymentMethod as $payment) {
+                    SalePaymentMethod::create([
+                        'sale_id' => $sale->id,
+                        'payment_method_id' => $payment['payment_method_id'],
+                        'amount' => floatval($payment['amount']),
+                        'order' => intval($payment['order'])
+                    ]);
+                }
+            }
             if (!empty($cotizacion->quotationItems)) {
                 foreach ($cotizacion->quotationItems as $item) {
                     if ($item->item_type === Product::class) {
@@ -280,93 +291,12 @@ class QuotationController extends Controller
                         ]);
                     }
                 }
-                //consultando la empresa a emitir el documento
-                $company = Company::find($sale->companies_id);
-                $empresa = [
-                    "ruc" => $company->ruc,
-                    "usuario" => $company->sol_user,
-                    "clave" => $company->sol_pass,
-                    "razon_social" => $company->razon_social,
-                    "direccion" => $company->direccion,
-                    "ubigeo" => $company->ubigeo,
-                    "distrito" => $company->distrito,
-                    "provincia" => $company->provincia,
-                    "departamento" => $company->departamento
-                ];
-                //datos cliente
-                $cliente = [
-                    "num_doc" => $sale->customer_dni,
-                    "rzn_social" => $sale->customer_names_surnames,
-                    "direccion" => !empty($sale->customer_address) ? $sale->customer_address : ""
-                ];
-                //datos productos
-                $products = [];
-                $saleItems = SalesItem::where('sale_id', $sale->id)->with('item')->get();
-
-                foreach ($saleItems as $product) {
-                    $products[] = [
-                        "cod_producto" => $product->item->code_sku, // preguntar si es code_sku o code_bar o code interno
-                        "cod_sunat" => "",
-                        "unidad" => "NIU",
-                        "precio" => $product->unit_price,
-                        "cantidad" => $product->quantity,
-                        "descripcion" => !empty($product->item->description) ? $product->item->description : $product->item->name
-                    ];
-                }
-                $data = [
-                    "total" => $sale->total_price,
-                    "endpoint" => "beta",
-                    "fecha_emision" => Carbon::parse($sale->fecha_registro)->format('Y-m-d'),
-                    "fecha_vencimiento" => Carbon::parse($sale->fecha_registro)->addDay()->format('Y-m-d'),
-                    "documento" => strtolower(strtok($sale->documentType->name, ' ')),
-                    "serie" => $sale->serie,
-                    "numero" => $sale->number,
-                    "forma_pago" => $sale->payments->name,
-                    "moneda" => "PEN",
-                    "empresa" => $empresa,
-                    "cliente" => $cliente,
-                    "detalles" => $products
-                ];
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, "https://magustechnologies.com/apisunat/api/generar/comprobante/electronico");
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Desactiva verificación SSL (solo para pruebas)
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    "Content-Type: application/json",
-                    "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                ]);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-
-                $response = curl_exec($ch);
-                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
-
-                $response = ltrim($response, "\u{00A9}");
-                $response = ltrim($response, "©");
-                // Decodificar la respuesta JSON
-                $body = json_decode($response, true);
-                // return $body;
-                $xmlContent = $body['data']['contenido_xml']; // Extraer el XML de la respuesta
-                $nombre_archivo = $body['data']['nombre_archivo'];
-                $hash = $body['data']['hash'];
-                $qr_info = $body['data']['qr_info'];
-                // Guardar el XML en storage/app/xmls/archivo.xml
-                Storage::put("xmls/$nombre_archivo.xml", $xmlContent);
-                $saleSunat = SalesSunat::create([
-                    'sale_id' => $sale->id,
-                    'hash' => $hash,
-                    'qr_info' => $qr_info,
-                    'name_xml' => $nombre_archivo
-                ]);
-                if ($saleSunat) {
-                    return response()->json(['success' => 'Venta guardada correctamente'], 200);
-                }
-            } else {
-                return response()->json(['error' => 'La cotización no tiene ítems'], 400);
             }
-
-            return response()->json(['success' => 'Venta creada correctamente'], 200);
+            if ($sale) {
+                $cotizacion->status_sale = '1';
+                $cotizacion->save();
+                return response()->json(['success' => 'Venta creada correctamente'], 200);
+            }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -417,8 +347,7 @@ class QuotationController extends Controller
                 'customer_dni' => $request->customer_dni,
                 'customer_address' => $request->customer_address,
                 'igv' => $request->igv,
-                'document_type_id' => $request->document_type,
-                // 'payment_method_id' => $request->payment_method_id,
+                'document_type_id' => $request->document_type_id,
                 'fecha_actualizacion' => now()->setTimezone('America/Lima'),
                 'user_update' => auth()->user()->id,
                 'companies_id' => $request->companies_id,

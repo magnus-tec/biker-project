@@ -200,14 +200,16 @@
                             ${sale.total_price}
                         </td>
                        
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${sale.fecha_registro}</td>
-                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-1 py-1 whitespace-nowrap text-sm text-gray-900 p">${sale.fecha_registro}</td>
+                         <td class="px-1 py-1 whitespace-nowrap text-sm text-gray-900">
                             <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                                 onclick="verDetalles(${sale.id})">Ver Detalles</button>
                             <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                         onclick="deleteSale(${sale.id})">Eliminar</button>
                         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
                         onclick="generarPDF(${sale.id})">PDF</button>
+                        <button class=" text-white px-2 py-1 rounded  ${sale.status_sunat == 1 ? 'bg-green-500' : 'bg-blue-500'}" ${sale.status_sunat == 1 ? 'disabled' : ''}
+                        onclick="enviarSunat(${sale.id})">${sale.status_sunat == 1 ? 'Enviado a SUNAT' : 'Enviar a SUNAT'}</button>
                         </td>
                     `;
                             tbody.appendChild(row);
@@ -344,6 +346,44 @@
             }
             //fin calculo
         });
+
+        // enviarSunat
+        async function enviarSunat(saleId) {
+            try {
+                let url = `{{ route('sales.enviarSunat', ':id') }}`.replace(':id', saleId);
+                let response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+
+                let respuesta = await response.json();
+                console.log(respuesta)
+
+                if (response.ok) {
+                    finAllSales();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Venta Enviada a la SUNAT',
+                        text: 'La venta se ha enviado correctamente a la SUNAT',
+                        showConfirmButton: false,
+                        timer: 2000
+                    })
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Al enviar la venta a la SUNAT',
+                        showConfirmButton: false,
+                        timer: 2000
+                    })
+                    console.error("Error al enviar la venta a la SUNAT");
+                }
+            } catch (error) {
+                console.error("Error al enviar la venta a la SUNAT:", error);
+            }
+        }
     </script>
 
 </x-app-layout>

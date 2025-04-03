@@ -214,16 +214,16 @@
                        
                         <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${sale.fecha_registro}</td>
                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
-                            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                                onclick="verDetalles(${sale.id})">Ver Detalles</button>
-                                <button class=" text-white px-2 py-1 rounded  ${sale.status_sale == '0' ? 'bg-yellow-500' : 'bg-blue-500'}"
-                                onclick="editQuotation(${sale.id})"  ${sale.status_sale == '0' ? '' : 'disabled'}>Editar</button>
-                            <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        onclick="deleteQuotation(${sale.id})">Eliminar</button>
-                        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        onclick="generarPDF(${sale.id})">PDF</button>
-                        <button onclick="venderQuotation(${sale.id})" class=" ${sale.status_sale == '0' ? 'bg-yellow-500' : 'bg-blue-500'} text-white px-2 py-1 rounded "  ${sale.status_sale == '0' ? '' : 'disabled'}>
-                            ${sale.status_sale == '0' ? 'Vender' : 'Vendido'} 
+                            <button class="text-white px-2 py-1 rounded"
+                                onclick="verDetalles(${sale.id})"><i class="bi bi-eye-fill text-blue-500"></i></button>
+                                <button class=" px-2 py-1 rounded"
+                                onclick="editQuotation(${sale.id})"  ${sale.status_sale == '0' ? '' : 'disabled'}><i class="bi bi-pencil-square  ${sale.status_sale == '0' ? 'text-yellow-500' : 'text-blue-500'}"></i></button>
+                            <button class=" px-2 py-1 rounded "
+                        onclick="deleteQuotation(${sale.id})"><i class="bi bi-trash3-fill text-red-500"></i></button>
+                        <button class=" px-2 py-1 rounded "
+                        onclick="generarPDF(${sale.id})"><i class="bi bi-filetype-pdf text-red-500"></i></button>
+                        <button onclick="venderQuotation(${sale.id})" class="px-2 py-1 rounded "${sale.status_sale == '0' ? '' : 'disabled'}>
+                            ${sale.status_sale == '0' ? '<i class="bi bi-cart-check text-yellow-500"></i>' : '<i class="bi bi-cart-x text-blue-500"></i>'} 
                         </button>
                     `;
                             tbody.appendChild(row);

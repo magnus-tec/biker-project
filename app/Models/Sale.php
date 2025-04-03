@@ -24,12 +24,12 @@ class Sale extends Model
         'quotation_id',
         'serie',
         'number',
-        'payment_method_id',
         'document_type_id',
         'companies_id',
         'payments_id',
         'districts_id',
-        'mechanics_id'
+        'mechanics_id',
+        'status_sunat'
 
     ];
 

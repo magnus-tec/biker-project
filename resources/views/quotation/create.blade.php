@@ -806,7 +806,6 @@
             customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
             customer_address: document.getElementById("direccion").value.trim(),
             districts_id: document.getElementById("districts_id").value,
-            // payment_method_id: document.getElementById("paymentMethod").value,
             mechanics_id: document.getElementById("mechanics_id").value,
             payments_id: document.getElementById("paymentType").value,
             order_date: document.getElementById("orderDate").value,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApiSunat;
 use App\Models\Company;
 use App\Models\DocumentType;
 use App\Models\Payment;
@@ -152,14 +153,27 @@ class SaleController extends Controller
                         'item_id'    => $serviceModel->id,
                         'quantity'   => 1,
                         'unit_price' => $service['price'],
-                        'product_prices_id' => NULL,
                         'mechanics_id' => $request->mechanics_id,
                     ]);
                 }
             }
+            if ($sale) {
+                return response()->json(['success' => 'Venta guardada correctamente'], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
+    public function enviarSunat($id)
+    {
+        $sale = Sale::find($id);
+        try {
+            if (!$sale) {
+                return response()->json(['error' => 'Venta no encontrada'], 404);
+            }
             //consultando la empresa a emitir el documento
-            $company = Company::find($request->companies_id);
+            $company = Company::find($sale->companies_id);
             $empresa = [
                 "ruc" => $company->ruc,
                 "usuario" => $company->sol_user,
@@ -171,22 +185,18 @@ class SaleController extends Controller
                 "provincia" => $company->provincia,
                 "departamento" => $company->departamento
             ];
-            // fin de la empresa
-
-            //datos cliente
             $cliente = [
                 "num_doc" => $sale->customer_dni,
                 "rzn_social" => $sale->customer_names_surnames,
                 "direccion" => !empty($sale->customer_address) ? $sale->customer_address : ""
             ];
 
-            //datos productos
             $products = [];
             $saleItems = SalesItem::where('sale_id', $sale->id)->with('item')->get();
 
             foreach ($saleItems as $product) {
                 $products[] = [
-                    "cod_producto" => $product->item->code_sku, // preguntar si es code_sku o code_bar o code interno
+                    "cod_producto" => $product->item->code_sku,
                     "cod_sunat" => "",
                     "unidad" => "NIU",
                     "precio" => $product->unit_price,
@@ -210,49 +220,64 @@ class SaleController extends Controller
                 "detalles" => $products
             ];
 
-            // return response()->json($data);
-            $ch = curl_init();
+            // Inicialización de la instancia de ApiSunat
+            $apiSunat = new ApiSunat('1');
+            $apiSunat->setData($data);
 
-            curl_setopt($ch, CURLOPT_URL, "https://magustechnologies.com/apisunat/api/generar/comprobante/electronico");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Desactiva verificación SSL (solo para pruebas)
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type: application/json",
-                "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            // Envío de los datos y obtención de la respuesta de la API
+            $respuestaSunat = $apiSunat->enviarData();
+            $contenidoXml = "";
 
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            // Manejo de la respuesta de la API
+            if (!$respuestaSunat || !isset($respuestaSunat['estado']) || (isset($respuestaSunat['estado']) && !$respuestaSunat['estado'])) {
+                $respuesta['success'] = false;
+                $respuesta['message'] = "Error: Error en comunicación con la API. respuesta: " . json_encode($respuestaSunat) . " -------------------- " . json_encode($data);
+            } else {
+                // Si la comunicación fue exitosa, procesar el XML recibido
+                $nombre_archivo = $respuestaSunat['data']['nombre_archivo'] . ".xml";
+                $contenidoXml = $respuestaSunat['data']['contenido_xml'];
+                $rutaArchivo = '/sunat/xml/' . $nombre_archivo;
+                $hash = $respuestaSunat['data']['hash'];
+                $qr_info = $respuestaSunat['data']['qr_info'];
+                // Almacenar el XML generado en el disco personalizado
+                Storage::disk('public')->put($rutaArchivo, $contenidoXml);
 
-            $response = ltrim($response, "\u{00A9}");
-            $response = ltrim($response, "©");
-            // Decodificar la respuesta JSON
-            $body = json_decode($response, true);
-            // return $body;
-            $xmlContent = $body['data']['contenido_xml']; // Extraer el XML de la respuesta
-            $nombre_archivo = $body['data']['nombre_archivo'];
-            $hash = $body['data']['hash'];
-            $qr_info = $body['data']['qr_info'];
-            // Guardar el XML en storage/app/xmls/archivo.xml
-            Storage::put("xmls/$nombre_archivo.xml", $xmlContent);
-            $saleSunat = SalesSunat::create([
-                'sale_id' => $sale->id,
-                'hash' => $hash,
-                'qr_info' => $qr_info,
-                'name_xml' => $nombre_archivo
-            ]);
+                // Verificar si el archivo se almacenó correctamente
+                if (Storage::disk('public')->exists($rutaArchivo)) {
+                    $respuesta['xml'] = $nombre_archivo;
+                } else {
 
-            if ($saleSunat) {
-                return response()->json(['success' => 'Venta guardada correctamente'], 200);
+                    // Si hubo un problema al generar el XML
+                    $respuesta['success'] = false;
+                    $respuesta['message'] = "Error: No se pudo generar XML";
+                }
+                $saleSunat = SalesSunat::create([
+                    'sale_id' => $sale->id,
+                    'hash' => $hash,
+                    'qr_info' => $qr_info,
+                    'name_xml' => $nombre_archivo
+                ]);
+
+                $sale->status_sunat = 1;
+                $sale->save();
+                if ($saleSunat) {
+                    return response()->json(
+                        [
+                            'success' => 'Venta emitida correctamente',
+                            'xml' => $respuesta['xml'],
+                            'sunat' => $respuestaSunat,
+                            'data' => $data,
+                            'jsonData' => json_encode($data),
+                            'json' => json_encode($data, JSON_UNESCAPED_UNICODE)
+                        ],
+                        200
+                    );
+                }
             }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
     /**
      * Display the specified resource.
      */

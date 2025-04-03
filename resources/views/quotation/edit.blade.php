@@ -83,7 +83,7 @@
                         <!-- Campo de búsqueda dentro del modal -->
                         <div class="mb-4 flex items-center ">
                             <div class="w-8/12">
-                                <input type="text" placeholder="Buscar por nombre del producto..."
+                                <input type="text" placeholder="Buscar por codigo del producto..."
                                     class="w-full p-2 border rounded" id="searchProduct">
                             </div>
                             <div>
@@ -564,12 +564,18 @@
             document.getElementById("dni_personal").value = responseQuotation.quotation.customer_dni;
             document.getElementById("direccion").value = responseQuotation.quotation.customer_address;
             console.log('responseQuotation', responseQuotation);
-            document.getElementById("documentType").value = responseQuotation.quotation.document_type_id;
+            document.getElementById("documentType").value = responseQuotation.quotation.document_type_id ??
+                '';
             document.getElementById("paymentType").value = responseQuotation.quotation.payments_id;
             document.getElementById("companies_id").value = responseQuotation.quotation.companies_id;
-            document.getElementById("datos_mecanico").value = responseQuotation.quotation.mechanic.name +
-                ' ' + responseQuotation.quotation.mechanic.apellidos;
-            document.getElementById("mechanics_id").value = responseQuotation.quotation.mechanic.id;
+            document.getElementById("datos_mecanico").value =
+                (responseQuotation?.quotation?.mechanic?.name ?? '') +
+                ' ' +
+                (responseQuotation?.quotation?.mechanic?.apellidos ?? '');
+
+
+            document.getElementById("mechanics_id").value = responseQuotation?.quotation?.mechanic?.id ??
+                '';
 
             let regionId = responseQuotation.quotation.district.province.region.id;
 
@@ -694,9 +700,9 @@
     //  Guardar la cotizacion
     document.getElementById("save").addEventListener("click", async () => {
         try {
-            quotationPaymentMethods();
             let quotationId = document.getElementById("quotationId").value;
             const orderData = buildOrderData();
+            quotationPaymentMethods();
 
             const response = await fetch('{{ route('quotations.update', ':id') }}'.replace(':id',
                 quotationId), {
@@ -705,7 +711,10 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify(orderData)
+                body: JSON.stringify({
+                    ...orderData,
+                    payments
+                })
             });
 
             if (!response.ok) throw new Error("Error en la petición");
@@ -718,6 +727,37 @@
         }
     });
 
+    function quotationPaymentMethods() {
+        payments = [];
+        let paymentMethod1 = document.getElementById('paymentMethod1').value;
+        const totalAmountDiv = document.getElementById('totalAmount');
+        let text = totalAmountDiv.textContent.trim();
+        let paymentAmount1 = parseFloat(text.replace('S/', '').trim()) || 0;
+        let paymentAmount2 = 0;
+        if (document.getElementById('togglePaymentFields').checked) {
+            let paymentMethod2 = document.getElementById('paymentMethod2').value;
+            paymentAmount2 = parseFloat(document.getElementById('paymentAmount2').value) || 0;
+
+            if (paymentMethod2 && paymentAmount2 > 0) {
+                payments.push({
+                    payment_method_id: paymentMethod2,
+                    amount: paymentAmount2,
+                    order: 2
+                });
+            }
+        } else {
+            document.getElementById('paymentMethod2').value = '';
+            document.getElementById('paymentAmount2').value = '';
+        }
+
+        if (paymentMethod1) {
+            payments.push({
+                payment_method_id: paymentMethod1,
+                amount: paymentAmount1 - paymentAmount2,
+                order: 1
+            });
+        }
+    }
     // 🔹 Función para construir el objeto de orden
     function buildOrderData() {
         return {
@@ -942,10 +982,12 @@
         return {
             customer_dni: document.getElementById("dni_personal").value.trim(),
             customer_names_surnames: document.getElementById("nombres_apellidos").value.trim(),
-            // payment_method_id: document.getElementById("paymentType").value,
             customer_address: document.getElementById("direccion").value.trim(),
+            districts_id: document.getElementById("districts_id").value,
+            mechanics_id: document.getElementById("mechanics_id").value,
+            payments_id: document.getElementById("paymentType").value,
             currency: document.getElementById("orderCurrency").value,
-            document_type: document.getElementById("documentType").value,
+            document_type_id: document.getElementById("documentType").value,
             companies_id: document.getElementById("companies_id").value,
             igv: parseAmount("igvAmount"),
             total: parseAmount("totalAmount")

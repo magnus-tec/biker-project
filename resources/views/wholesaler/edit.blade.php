@@ -83,7 +83,7 @@
                         <!-- Campo de búsqueda dentro del modal -->
                         <div class="mb-4 flex items-center ">
                             <div class="w-8/12">
-                                <input type="text" placeholder="Buscar por nombre del producto..."
+                                <input type="text" placeholder="Buscar por codigo del producto..."
                                     class="w-full p-2 border rounded" id="searchProduct">
                             </div>
                             <div>

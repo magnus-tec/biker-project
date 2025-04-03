@@ -38,6 +38,7 @@ return new class extends Migration
             $table->timestamp('fecha_registro')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
             $table->timestamp('fecha_actualizacion')->default(DB::raw('CURRENT_TIMESTAMP'))->onUpdate(DB::raw('CURRENT_TIMESTAMP'));
             $table->string('status')->default('1');
+            $table->string('status_sunat')->default('0');
             $table->timestamps();
         });
     }

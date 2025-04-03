@@ -60,4 +60,8 @@ class Quotation extends Model
     {
         return $this->belongsTo(User::class, 'mechanics_id');
     }
+    public function payments()
+    {
+        return $this->belongsTo(Payment::class);
+    }
 }

@@ -16,6 +16,7 @@ class SalesItem extends Model
         'quantity',
         'unit_price',
         'item_type',
+        'mechanics_id'
     ];
 
     public function sales()

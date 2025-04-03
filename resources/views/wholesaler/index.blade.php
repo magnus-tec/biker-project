@@ -190,7 +190,7 @@
                                 onclick="verDetalles(${mayorista.id})"><i class="bi bi-eye-fill text-blue-500"></i></button>
                                 <button class="px-2 py-1 rounded "
                                 onclick="editWholesaler(${mayorista.id})"  ${mayorista.status_sale == '0' ? '' : 'disabled'}><i class="bi bi-pencil-square  ${mayorista.status_sale == '0' ? 'text-yellow-500' : 'text-blue-500'}"></i></button>
-                            <button class="px-2 py-1 rounded hover:bg-blue-700"
+                            <button class="px-2 py-1 rounded "
                         onclick="deleteWholesaler(${mayorista.id})"><i class="bi bi-trash3-fill text-red-500"></i></button>
                         <button class=" px-2 py-1 rounded "
                         onclick="generarPDF(${mayorista.id})"><i class="bi bi-filetype-pdf text-red-500"></i></button>

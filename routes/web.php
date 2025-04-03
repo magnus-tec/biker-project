@@ -84,6 +84,7 @@ Route::group(
         Route::get('/sale/listado', [SaleController::class, 'filtroPorfecha'])->name('sales.filtroPorfecha');
         Route::get('/sale/detalles/{id}', [SaleController::class, 'detallesVenta'])->name('sale.detallesVenta');
         Route::get('/sale/pdf/{id}', [SaleController::class, 'generatePDF'])->name('sales.pdf');
+        Route::post('/sale/enviar-sunat/{id}', [SaleController::class, 'enviarSunat'])->name('sales.enviarSunat');
         //UNIDAD MEDIDA
         Route::resource('units',  App\Http\Controllers\UnitController::class);
         Route::get('/units', [UnitController::class, 'search']);
