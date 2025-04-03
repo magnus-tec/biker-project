@@ -62,7 +62,9 @@
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Vendedor
                         </th>
-
+                        <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Mecanico
+                        </th>
                         <th class="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             SubTotal
                         </th>
@@ -182,26 +184,29 @@
                         data.forEach(sale => {
                             let row = document.createElement('tr');
                             row.innerHTML = `
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${sale.code}</td>
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900"><a href="javascript:void(0)" class="text-blue-600 hover:underline"onclick="generarPDF(${sale.id})">${sale.serie} - ${sale.number}</a></td>
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${sale.customer_names_surnames == null ? 'Sin cliente' : sale.customer_names_surnames}</td> 
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">${sale.customer_dni}</td>
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">${sale.code}</td>
+                        <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900"><a href="javascript:void(0)" class="text-blue-600 hover:underline"onclick="generarPDF(${sale.id})">${sale.serie} - ${sale.number}</a></td>
+                        <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">${sale.customer_names_surnames == null ? 'Sin cliente' : sale.customer_names_surnames}</td> 
+                        <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">${sale.customer_dni}</td>
+                        <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">
                             ${sale.user_register == null ? 'Sin vendedor' : sale.user_register.name} 
                         </td>
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                         <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">
+                            ${sale.mechanic == null ? 'Sin mecanico' : sale.mechanic.name} 
+                        </td>
+                        <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">
                             ${( (Number(sale.total_price) || 0) - (Number(sale.igv) || 0) ).toFixed(2)}
                         </td>
 
-                          <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                          <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">
                             ${sale.igv}
                         </td>
-                        <td class="px-3 py-1 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-1 whitespace-nowrap text-xs text-gray-900">
                             ${sale.total_price}
                         </td>
                        
-                        <td class="px-1 py-1 whitespace-nowrap text-sm text-gray-900 p">${sale.fecha_registro}</td>
-                         <td class="px-1 py-1 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-1 py-1 whitespace-nowrap text-xs text-gray-900 p">${sale.fecha_registro}</td>
+                         <td class="px-1 py-1 whitespace-nowrap text-xs text-gray-900">
                             <button class="text-xl px-2 py-1 rounded"
                                 onclick="verDetalles(${sale.id})"><i class="bi bi-eye-fill text-blue-500"></i></button>
                             <button class="text-xl px-2 py-1 rounded"

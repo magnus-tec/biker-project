@@ -354,7 +354,7 @@ class SaleController extends Controller
             return response()->json(['error' => 'Faltan parámetros'], 400);
         }
         $user = auth()->user();
-        $ventas = Sale::with('userRegister')
+        $ventas = Sale::with('userRegister', 'mechanic')
             ->whereDate('fecha_registro', '>=', $request->fecha_desde)
             ->whereDate('fecha_registro', '<=', $request->fecha_hasta);
 

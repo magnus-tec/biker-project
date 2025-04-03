@@ -69,4 +69,12 @@ class Sale extends Model
     {
         return $this->belongsTo(Company::class);
     }
+    public function districts()
+    {
+        return $this->belongsTo(District::class);
+    }
+    public function mechanic()
+    {
+        return $this->belongsTo(User::class, 'mechanics_id');
+    }
 }
