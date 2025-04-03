@@ -90,7 +90,7 @@ class QuotationController extends Controller
     }
     public function detallesQuotation($id)
     {
-        $quotation = Quotation::with('quotationItems.item', 'userRegister', 'quotationPaymentMethod', 'district.province.region', 'mechanic')->find($id);
+        $quotation = Quotation::with('quotationItems.item', 'userRegister', 'quotationPaymentMethod', 'district.province.region', 'mechanic', 'payments')->find($id);
         if (!$quotation) {
             return abort(404, 'Venta no encontrada');
         }
@@ -146,6 +146,8 @@ class QuotationController extends Controller
                 'companies_id' => $request->companies_id,
                 'payments_id' => $request->payments_id,
                 'mechanics_id' => $request->mechanics_id,
+                'nro_dias' => $request->nro_dias,
+                'fecha_vencimiento' => $request->fecha_vencimiento,
             ]);
             if (!empty($request->payments)) {
                 foreach ($request->payments as $payment) {
@@ -241,6 +243,8 @@ class QuotationController extends Controller
                 'payments_id' => $cotizacion->payments_id,
                 'districts_id' => $cotizacion->districts_id,
                 'mechanics_id' => $cotizacion->mechanics_id,
+                'nro_dias' => $cotizacion->nro_dias,
+                'fecha_vencimiento' => $cotizacion->fecha_vencimiento,
             ]);
 
             if (!empty($cotizacion->quotationPaymentMethod)) {
@@ -354,6 +358,8 @@ class QuotationController extends Controller
                 'payments_id' => $request->payments_id,
                 'mechanics_id' => $request->mechanics_id,
                 'districts_id' => $request->districts_id,
+                'nro_dias' => $request->nro_dias,
+                'fecha_vencimiento' => $request->fecha_vencimiento,
             ]);
 
             QuotationPaymentMethod::where('quotation_id', $quotation->id)->delete();

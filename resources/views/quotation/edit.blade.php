@@ -156,7 +156,15 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
+                <!-- Campos adicionales ocultos -->
+                <div id="creditFields" class="mt-3 hidden">
+                    <label for="nro_dias">Número de días:</label>
+                    <input type="number" id="nro_dias" class="w-full p-2 border rounded" min="1">
+
+                    <label for="fecha_vencimiento" class="mt-2">Fecha de vencimiento:</label>
+                    <input type="date" id="fecha_vencimiento" class="w-full p-2 border rounded">
+                </div>
+                <div class="mt-3" id="paymentMethodContainer1">
                     <label class="font-bold">Método de pago</label>
                     <select id="paymentMethod1" class="w-full p-2 border rounded">
                         <option value="">Seleccione</option>
@@ -170,7 +178,7 @@
                         class="w-full p-2 border rounded mt-2" value="">
                 </div>
 
-                <div class="mt-2">
+                <div class="mt-2" id="paymentMethodContainer2">
                     <input type="checkbox" id="togglePaymentFields" class="mr-2">
                     <label for="togglePaymentFields">Agregar método de pago y monto</label>
                 </div>
@@ -290,6 +298,70 @@
     let orderTableBody = document.getElementById("orderTableBody");
     let services = [];
     let payments = [];
+    // credito y contado
+    document.getElementById("nro_dias").addEventListener("input", function() {
+        let days = parseInt(this.value, 10);
+        if (!isNaN(days) && days > 0) {
+            let today = new Date();
+            today.setDate(today.getDate() + days);
+            document.getElementById("fecha_vencimiento").value = today.toISOString().split("T")[0];
+        } else {
+            document.getElementById("fecha_vencimiento").value = "";
+        }
+    });
+    document.getElementById("paymentType").addEventListener("change", function() {
+        let selectedValue = this.value;
+        let creditFields = document.getElementById("creditFields");
+        let daysInput = document.getElementById("nro_dias");
+        let dueDateInput = document.getElementById("fecha_vencimiento");
+        let paymentFieldsContainer = document.getElementById("paymentFieldsContainer");
+        let paymentMethodContainer1 = document.getElementById("paymentMethodContainer1");
+        let paymentMethodContainer2 = document.getElementById("paymentMethodContainer2");
+        if (selectedValue === "2") {
+            console.log('payments', payments)
+            creditFields.classList.remove("hidden");
+            paymentFieldsContainer.classList.add("hidden");
+            paymentMethodContainer1.classList.add("hidden");
+            paymentMethodContainer2.classList.add("hidden");
+            daysInput.addEventListener("input", function() {
+                let days = parseInt(this.value, 10);
+                if (!isNaN(days) && days > 0) {
+                    let today = new Date();
+                    today.setDate(today.getDate() + days);
+                    dueDateInput.value = today.toISOString().split("T")[0];
+                } else {
+                    dueDateInput.value = "";
+                }
+            });
+            const container = document.getElementById('paymentFieldsContainer');
+
+            payments = [];
+
+            container.style.display = 'none';
+            document.getElementById("togglePaymentFields").checked = false;
+            document.getElementById("paymentMethod2").value = "";
+            document.getElementById("paymentAmount2").value = "";
+            document.getElementById("paymentMethod1").value = "";
+            document.getElementById("paymentAmount1").value = "";
+
+        } else if (selectedValue === "1") {
+            creditFields.classList.add("hidden");
+            paymentMethodContainer1.classList.remove("hidden");
+            paymentMethodContainer2.classList.remove("hidden");
+            let togglePaymentFields = document.getElementById("togglePaymentFields").checked;
+            if (togglePaymentFields) {
+                paymentFieldsContainer.classList.remove("hidden");
+
+            }
+
+        } else {
+            creditFields.classList.add("hidden");
+        }
+        if (selectedValue !== "2") {
+            daysInput.value = "";
+            dueDateInput.value = "";
+        }
+    });
     document.getElementById('togglePaymentFields').addEventListener('change', function() {
         const container = document.getElementById('paymentFieldsContainer');
         container.style.display = this.checked ? 'block' : 'none';
@@ -582,13 +654,29 @@
             document.getElementById("regions_id").value = regionId;
             let provinceId = responseQuotation.quotation.district.province.id;
             let districtId = responseQuotation.quotation.district.id;
-            console.log('regionId', regionId);
-            console.log('provinceId', provinceId);
-            console.log('districtId', districtId);
             await fetchProvinces(regionId, provinceId);
             await fetchDistricts(provinceId, districtId);
 
-
+            let tipoPago = responseQuotation.quotation.payments.name;
+            let creditFields = document.getElementById("creditFields");
+            let paymentMethodContainer1 = document.getElementById("paymentMethodContainer1");
+            let paymentMethodContainer2 = document.getElementById("paymentMethodContainer2");
+            let paymentFieldsContainer = document.getElementById("paymentFieldsContainer");
+            console.log('tipoPago', tipoPago)
+            if (tipoPago === 'contado') {
+                creditFields.classList.add("hidden");
+                paymentMethodContainer1.classList.remove("hidden");
+                paymentMethodContainer2.classList.remove("hidden");
+                paymentFieldsContainer.classList.remove("hidden");
+            } else if (tipoPago === 'credito') {
+                creditFields.classList.remove("hidden");
+                paymentMethodContainer1.classList.add("hidden");
+                paymentMethodContainer2.classList.add("hidden");
+                paymentFieldsContainer.classList.add("hidden");
+                document.getElementById("nro_dias").value = responseQuotation.quotation.nro_dias;
+                document.getElementById("fecha_vencimiento").value = responseQuotation.quotation
+                    .fecha_vencimiento;
+            }
             let metodo1 = responseQuotation.quotation.quotation_payment_method
                 .find(item => item.order === 1)
             let metodo2 = responseQuotation.quotation.quotation_payment_method
@@ -628,13 +716,9 @@
                 }))
 
             updateTable();
-
             addProductToForm();
-
-            console.log('responseQuotation', responseQuotation);
             updateTotalAmount();
             updateInformationCalculos();
-            console.log("services", responseQuotation.quotation.quotation_items);
         } catch (error) {
             console.error("Error:", error);
         }
@@ -989,6 +1073,8 @@
             currency: document.getElementById("orderCurrency").value,
             document_type_id: document.getElementById("documentType").value,
             companies_id: document.getElementById("companies_id").value,
+            nro_dias: document.getElementById("nro_dias").value,
+            fecha_vencimiento: document.getElementById("fecha_vencimiento").value,
             igv: parseAmount("igvAmount"),
             total: parseAmount("totalAmount")
         };

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('igv', 10, 2);
             $table->string('serie');
             $table->unsignedInteger('number');
+            $table->integer('nro_dias')->nullable();
             $table->string('observation')->nullable();
             $table->string('customer_address')->nullable();
             $table->foreignId('quotation_id')->nullable()->constrained('quotations')->onDelete('cascade');
@@ -36,6 +37,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_update')->nullable();
             $table->foreign('user_update')->references('id')->on('users')->onDelete('cascade');
             $table->timestamp('fecha_registro')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
+            $table->date('fecha_vencimiento')->nullable();
             $table->timestamp('fecha_actualizacion')->default(DB::raw('CURRENT_TIMESTAMP'))->onUpdate(DB::raw('CURRENT_TIMESTAMP'));
             $table->string('status')->default('1');
             $table->string('status_sunat')->default('0');

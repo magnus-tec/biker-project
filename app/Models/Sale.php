@@ -29,7 +29,9 @@ class Sale extends Model
         'payments_id',
         'districts_id',
         'mechanics_id',
-        'status_sunat'
+        'status_sunat',
+        'nro_dias',
+        'fecha_vencimiento',
 
     ];
 

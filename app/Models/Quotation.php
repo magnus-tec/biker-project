@@ -26,7 +26,9 @@ class Quotation extends Model
         'companies_id',
         'payments_id',
         'districts_id',
-        'mechanics_id'
+        'mechanics_id',
+        'nro_dias',
+        'fecha_vencimiento',
 
     ];
 

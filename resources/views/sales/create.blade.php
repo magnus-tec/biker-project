@@ -154,7 +154,15 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
+                <!-- Campos adicionales ocultos -->
+                <div id="creditFields" class="mt-3 hidden">
+                    <label for="nro_dias">Número de días:</label>
+                    <input type="number" id="nro_dias" class="w-full p-2 border rounded" min="1">
+
+                    <label for="fecha_vencimiento" class="mt-2">Fecha de vencimiento:</label>
+                    <input type="date" id="fecha_vencimiento" class="w-full p-2 border rounded">
+                </div>
+                <div class="mt-3" id="paymentMethodContainer1">
                     <label class="font-bold">Metodo pago</label>
                     <!-- Se agrega id para capturar el valor -->
                     <select id="paymentMethod1" class="w-full p-2 border rounded">
@@ -164,7 +172,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="mt-2">
+                <div class="mt-2" id="paymentMethodContainer2">
                     <input type="checkbox" id="togglePaymentFields" class="mr-2">
                     <label for="togglePaymentFields">Agregar método de pago y monto</label>
                 </div>
@@ -276,6 +284,65 @@
     const totalAmountEl = document.getElementById("totalAmount");
     const orderTableBody = document.getElementById("orderTableBody");
     let payments = [];
+    // credito y contado
+    document.getElementById("paymentType").addEventListener("change", function() {
+        let selectedValue = this.value;
+        let creditFields = document.getElementById("creditFields");
+        let daysInput = document.getElementById("nro_dias");
+        let dueDateInput = document.getElementById("fecha_vencimiento");
+        let paymentFieldsContainer = document.getElementById("paymentFieldsContainer");
+        let paymentMethodContainer1 = document.getElementById("paymentMethodContainer1");
+        let paymentMethodContainer2 = document.getElementById("paymentMethodContainer2");
+        if (selectedValue === "2") {
+            // Si es crédito, mostrar campos de número de días y fecha de vencimiento
+            creditFields.classList.remove("hidden");
+            paymentFieldsContainer.classList.add("hidden"); // Ocultar método de pago
+            paymentMethodContainer1.classList.add("hidden");
+            paymentMethodContainer2.classList.add("hidden");
+            // Calcular fecha de vencimiento al cambiar el número de días
+            daysInput.addEventListener("input", function() {
+                let days = parseInt(this.value, 10);
+                if (!isNaN(days) && days > 0) {
+                    let today = new Date();
+                    today.setDate(today.getDate() + days);
+                    dueDateInput.value = today.toISOString().split("T")[0]; // Formato YYYY-MM-DD
+                } else {
+                    dueDateInput.value = ""; // Vaciar si el valor no es válido
+                }
+            });
+            const container = document.getElementById('paymentFieldsContainer');
+
+            payments = [];
+
+            container.style.display = 'none';
+            document.getElementById("togglePaymentFields").checked = false;
+            document.getElementById("paymentMethod2").value = "";
+            document.getElementById("paymentAmount2").value = "";
+            document.getElementById("paymentMethod1").value = "";
+            document.getElementById("paymentAmount1").value = "";
+
+        } else if (selectedValue === "1") {
+            // Si es contado, mostrar el método de pago y ocultar crédito
+            creditFields.classList.add("hidden");
+            paymentMethodContainer1.classList.remove("hidden");
+            paymentMethodContainer2.classList.remove("hidden");
+            let togglePaymentFields = document.getElementById("togglePaymentFields").checked;
+            if (togglePaymentFields) {
+                paymentFieldsContainer.classList.remove("hidden");
+                document.getElementById('paymentFieldsContainer').style.display = 'block';
+
+            }
+        } else {
+            // Si no ha seleccionado nada, ocultar ambos
+            creditFields.classList.add("hidden");
+        }
+
+        // Reiniciar valores si cambia de opción
+        if (selectedValue !== "2") {
+            daysInput.value = "";
+            dueDateInput.value = "";
+        }
+    });
     //agregando buscador 
     document.getElementById('searchProductList').addEventListener('input', function() {
         let searchProductList = document.getElementById('searchProductList').value;
@@ -708,6 +775,8 @@
             currency: document.getElementById("orderCurrency").value,
             document_type_id: document.getElementById("documentType").value,
             companies_id: document.getElementById("companies_id").value,
+            nro_dias: document.getElementById("nro_dias").value,
+            fecha_vencimiento: document.getElementById("fecha_vencimiento").value,
             igv: parseAmount("igvAmount"),
             total: parseAmount("totalAmount")
         };

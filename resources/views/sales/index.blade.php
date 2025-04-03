@@ -202,14 +202,14 @@
                        
                         <td class="px-1 py-1 whitespace-nowrap text-sm text-gray-900 p">${sale.fecha_registro}</td>
                          <td class="px-1 py-1 whitespace-nowrap text-sm text-gray-900">
-                            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                                onclick="verDetalles(${sale.id})">Ver Detalles</button>
-                            <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        onclick="deleteSale(${sale.id})">Eliminar</button>
-                        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        onclick="generarPDF(${sale.id})">PDF</button>
-                        <button class=" text-white px-2 py-1 rounded  ${sale.status_sunat == 1 ? 'bg-green-500' : 'bg-blue-500'}" ${sale.status_sunat == 1 ? 'disabled' : ''}
-                        onclick="enviarSunat(${sale.id})">${sale.status_sunat == 1 ? 'Enviado a SUNAT' : 'Enviar a SUNAT'}</button>
+                            <button class="text-xl px-2 py-1 rounded"
+                                onclick="verDetalles(${sale.id})"><i class="bi bi-eye-fill text-blue-500"></i></button>
+                            <button class="text-xl px-2 py-1 rounded"
+                        onclick="deleteSale(${sale.id})" ${sale.status_sunat == 1 ? 'disabled' : ''}><i class="bi bi-trash3-fill text-red-500"></i></button>
+                        <button class="text-xl px-2 py-1 rounded" 
+                        onclick="generarPDF(${sale.id})"><i class="bi bi-filetype-pdf text-red-500"></i></button>
+                        <button class=" text-white px-2 py-1 rounded text-xl" ${sale.status_sunat == 1 ? 'disabled' : ''}
+                        onclick="enviarSunat(${sale.id})" title="${sale.status_sunat == 1 ? 'Enviado a Sunat' : 'No enviado a Sunat'}">${sale.status_sunat == 1 ? '<i class="bi bi-send-check text-blue-500"></i>' : '<i class="bi bi-send-slash text-green-500"></i>'}</button>
                         </td>
                     `;
                             tbody.appendChild(row);

@@ -97,7 +97,8 @@ class SaleController extends Controller
                 'payments_id' => $request->payments_id,
                 'mechanics_id' => $request->mechanics_id,
                 'districts_id' => $request->districts_id,
-
+                'nro_dias' => $request->nro_dias,
+                'fecha_vencimiento' => $request->fecha_vencimiento,
             ]);
             if (!empty($request->payments)) {
                 foreach ($request->payments as $payment) {
@@ -205,12 +206,22 @@ class SaleController extends Controller
                 ];
             }
 
+            $cuotas_credito = [];
+            if ($sale->payments_id == 2) {
+                $cuotas_credito = [
+                    [
+                        "fecha" => $sale->fecha_vencimiento,
+                        "monto" => $sale->total_price
+                    ]
+                ];
+            }
+
             $data = [
                 "total" => $sale->total_price,
                 "endpoint" => "beta",
                 "fecha_emision" => Carbon::parse($sale->fecha_registro)->format('Y-m-d'),
                 "fecha_vencimiento" => Carbon::parse($sale->fecha_registro)->addDay()->format('Y-m-d'),
-                "documento" => strtolower(strtok($sale->documentType->name, ' ')),
+                "documento" => $sale->documentType->abbreviation == 'BT' ? 'boleta' : 'factura',
                 "serie" => $sale->serie,
                 "numero" => $sale->number,
                 "forma_pago" => $sale->payments->name,
@@ -219,7 +230,12 @@ class SaleController extends Controller
                 "cliente" => $cliente,
                 "detalles" => $products
             ];
+            // Agregar cuotas_credito solo si no está vacío
+            if (!empty($cuotas_credito)) {
+                $data["cuotas_credito"] = $cuotas_credito;
+            }
 
+            // return response()->json($data);
             // Inicialización de la instancia de ApiSunat
             $apiSunat = new ApiSunat('1');
             $apiSunat->setData($data);
