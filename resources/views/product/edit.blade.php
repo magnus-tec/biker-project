@@ -69,18 +69,6 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- <div>
-                    <label for="unit_id" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
-                    <select name="unit_id" id="unit_id"
-                        class="form-select block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
-                        <option value="">Seleccione una medida</option>
-                        @foreach ($units as $unit)
-                            <option value="{{ $unit->id }}" {{ $product->unit_id == $unit->id ? 'selected' : '' }}>
-                                {{ $unit->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div> --}}
                 <div class="relative">
                     <label for="unit_name" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
                     <input type="text" id="unit_name" name="unit_name"
@@ -104,17 +92,6 @@
                         value="{{ isset($productStock->minimum_stock) ? $productStock->minimum_stock : '' }}"
                         class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
                 </div>
-                {{-- <div>
-                    <label for="brand_id" class="block text-sm font-medium text-gray-700">Marca</label>
-                    <select name="brand_id" id="brand_id"
-                        class="form-select block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm">
-                        <option value="">Seleccione una medida</option>
-                        @foreach ($brands as $brand)
-                            <option value="{{ $brand->id }}"
-                                {{ $product->brand_id == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
-                        @endforeach
-                    </select>
-                </div> --}}
                 <div class="relative">
                     <label for="brand" class="block font-medium text-gray-700">Marca</label>
                     <input type="text" id="brand" name="brand"
@@ -127,18 +104,6 @@
                         <ul id="brandSuggestions" class="max-h-40 overflow-y-auto"></ul>
                     </div>
                 </div>
-
-                {{-- <div class="relative">
-                    <label for="unit_name" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
-                    <input type="text" id="unit_name" name="unit_name"
-                        value="{{ old('unit_name', $product->unit_name) }}"
-                        class="block w-full mt-2 p-2 border border-gray-300 rounded-md shadow-sm" autocomplete="off">
-                    <div id="unitDropdown"
-                        class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden">
-                        <ul id="unitSuggestions" class="max-h-40 overflow-y-auto"></ul>
-                    </div>
-                </div> --}}
-
                 <div>
                     <label for="location" class="block text-sm font-medium text-gray-700">Ubicación</label>
                     <input type="text" name="location" id="location" value="{{ $product->location }}"
@@ -151,7 +116,26 @@
                 @foreach ($product->prices as $price)
                     <div>
                         <label for="prices[{{ $price->type }}]" class="block text-sm font-medium text-gray-700">
-                            Precio {{ ucfirst($price->type) }}
+                            @php
+                                switch ($price->type) {
+                                    case 'buy':
+                                        $label = 'Precio Compra';
+                                        break;
+                                    case 'sucursalA':
+                                        $label = 'Precio Sucursal A';
+                                        break;
+                                    case 'sucursalB':
+                                        $label = 'Precio Sucursal B';
+                                        break;
+                                    case 'wholesale':
+                                        $label = 'Precio Mayorista';
+                                        break;
+                                    default:
+                                        $label = 'Precio ' . ucfirst($price->type);
+                                        break;
+                                }
+                            @endphp
+                            {{ $label }}
                         </label>
                         <input type="decimal" name="prices[{{ $price->type }}]" id="prices_{{ $price->type }}"
                             value="{{ $price->price }}"
@@ -159,7 +143,6 @@
                     </div>
                 @endforeach
             </div>
-
             <div class="flex justify-center space-x-4 mt-6">
                 <button id="registrar"
                     class="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition"

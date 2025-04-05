@@ -249,8 +249,8 @@
                                          <td class="px-3 py-1 whitespace-nowrap text-sx text-gray-900">
                             ${product.images?.length > 0 
                                 ? `<img src="${product.images[0].image_path}" alt="Producto"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="w-20 h-20 object-cover rounded-lg cursor-pointer"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            onclick="openModal(${product.id})">`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="w-20 h-20 object-cover rounded-lg cursor-pointer"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            onclick="openModal(${product.id})">`
                                 : '<span class="text-gray-400">No Image</span>'}
                         </td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">${product.description ?? ''}</td>
@@ -267,8 +267,17 @@
                                         <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">${product.unit?.name ?? ''}</td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sx font-medium text-gray-900">
                                             <select class="border border-gray-300 rounded px-2 py-1">
-                                             ${product.prices?.map(price => `<option value="${price.price}">${price.type} - ${price.price}</option>`).join('') || 
-                                             '<option value="">No hay precios disponibles</option>'}
+                                                ${product.prices?.map(price => `
+                                                            <option value="${price.price}">
+                                                                ${
+                                                                    price.type === 'buy' ? 'Precio Compra' :
+                                                                    price.type === 'sucursalA' ? 'Precio Sucursal A' :
+                                                                    price.type === 'sucursalB' ? 'Precio Sucursal B' :
+                                                                    price.type === 'wholesale' ? 'Precio Mayorista' :
+                                                                    `Precio ${price.type}`
+                                                                } - ${price.price}
+                                                            </option>`
+                                                ).join('') || '<option value="">No hay precios disponibles</option>'}
                                             </select>
                                         </td>
                                         <td class="px-3 py-1 whitespace-nowrap text-sx font-medium">
