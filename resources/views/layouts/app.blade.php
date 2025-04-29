@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     <!-- Swiper JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <!-- Scripts -->
     {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
@@ -34,18 +35,26 @@
 
         <!-- Page Heading -->
         @if (isset($header))
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
+            {{ $header }}
         @endif
 
         <!-- Page Content -->
-        <main>
+        <main :class="sidebarOpen && window.innerWidth < 768 ? 'ml-64' : 'ml-0 md:ml-16'"
+            class="transition-all duration-300 pt-4 px-4">
             {{ $slot }}
         </main>
     </div>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+
+        sidebar.addEventListener('mouseenter', () => {
+            sidebar.classList.add('expanded');
+        });
+
+        sidebar.addEventListener('mouseleave', () => {
+            sidebar.classList.remove('expanded');
+        });
+    </script>
 </body>
 
 </html>

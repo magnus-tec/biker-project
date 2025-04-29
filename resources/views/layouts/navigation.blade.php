@@ -1,192 +1,205 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100" style="background-color: rgb(11,90,216);">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-24 sm:w-20 md:w-16 lg:w-14">
-                    </a>
-                </div>
+<style>
+    aside {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 60px;
+        background-color: #1e3a8a;
+        color: white;
+        transition: width 0.3s ease;
+    }
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+    aside.expanded {
+        width: 250px;
+    }
 
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white">
-                        {{ __('Inicio') }}
-                    </x-nav-link>
-                    @can('ver-conductores')
-                        <a href="{{ route('drives.index') }}"
-                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Clientes
-                        </a>
-                    @endcan
-                    @can('ver-mecanicos')
-                        <a href="{{ route('mechanics.index') }}"|
-                            class="border-transparent text-white  inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Mecanicos
-                        </a>
-                    @endcan
-                    @can('ver-vehiculos')
-                        <a href="{{ route('cars.index') }}"
-                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Vehiculos
-                        </a>
-                    @endcan
-                    @can('ver-trabajadores')
-                        <a href="{{ route('workers.index') }}"
-                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Registro de Trabajadores
-                        </a>
-                    @endcan
-                    @can('ver-servicios')
-                        <a href="{{ route('services.index') }}"
-                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Servicios Realizados
-                        </a>
-                    @endcan
-                    @can('ver-garantias')
-                        <a href="{{ route('garantines.index') }}"
-                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Garantias
-                        </a>
-                    @endcan
-                    @can('ver-productos')
-                        <a href="{{ route('products.index') }}"
-                            class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Productos
-                        </a>
-                    @endcan
-                    <a href="{{ route('sales.index') }}"
-                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Ventas
-                    </a>
-                    <a href="{{ route('quotations.index') }}"
-                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Cotizaciones
-                    </a>
-                    <a href="{{ route('wholesalers.index') }}"
-                        class="border-transparent text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                        Mayoristas
-                    </a>
-                </div>
-            </div>
+    .menu {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 0 10px;
+    }
 
-            <!-- Settings Dropdown -->
-            {{-- <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button
-                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+    .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background 0.2s ease;
+        cursor: pointer;
+    }
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
+    .menu-item:hover {
+        background-color: #3749b3;
+    }
 
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
+    .menu-item i {
+        font-size: 20px;
+        margin-right: 10px;
+        min-width: 20px;
+        text-align: center;
+    }
 
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
+    .menu-item span {
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
 
-                            <x-dropdown-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div> --}}
-            <div x-data="{ open: false }" class="relative">
-                <button @click="open = ! open"
-                    class="inline-flex items-center mt-2 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                    <div>{{ Auth::user()->name }}</div>
+    aside.expanded .menu-item span {
+        opacity: 1;
+    }
 
-                    <div class="ms-1">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                </button>
+    .menu-separator {
+        border-top: 1px solid #fff;
+        margin: 20px 0;
+    }
 
-                <div x-show="open" @click.away="open = false"
-                    class="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-md shadow-lg">
-                    <x-dropdown-link :href="route('profile.edit')">
-                        {{ __('Perfil') }}
-                    </x-dropdown-link>
+    .logout-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        padding: 0;
+        cursor: pointer;
+    }
 
-                    <!-- Authentication -->
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <x-dropdown-link :href="route('logout')"
-                            onclick="event.preventDefault(); this.closest('form').submit();">
-                            {{ __('Cerrar Sesión') }}
-                        </x-dropdown-link>
-                    </form>
-                </div>
-            </div>
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open"
-                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
-                            stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+    .logout-btn:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        aside.expanded {
+            width: 250px;
+        }
+
+        .menu-item {
+            justify-content: center;
+        }
+
+        .menu-item i {
+            font-size: 24px;
+        }
+
+        .menu-item span {
+            opacity: 1;
+        }
+
+        aside {
+            width: 0;
+            overflow: auto;
+            z-index: 50;
+        }
+
+        aside.expanded {
+            width: 250px;
+        }
+
+        .menu-item {
+            justify-content: center;
+        }
+
+        .menu-item span {
+            opacity: 1;
+        }
+    }
+</style>
+<div x-data="{ sidebarOpen: false }">
+
+    <!-- Botón de menú para móviles -->
+    <div class="md:hidden flex items-center justify-between p-4 bg-white shadow">
+        <button @click="sidebarOpen = !sidebarOpen" class="text-blue-600 text-2xl">
+            <i class="bi bi-list"></i>
+        </button>
+        <span class="text-lg font-semibold">Mi App</span>
     </div>
-
-    <!-- Responsive Navigation Menu -->
-    <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+    <!-- Botón cerrar (solo en móviles) -->
+<div class="md:hidden flex justify-end p-2">
+    <button @click="sidebarOpen = false" class="text-white text-xl">
+        <i class="bi bi-x-lg"></i>
+    </button>
+</div>
+    <aside id="sidebar" :class="sidebarOpen ? 'w-64' : 'w-0 md:w-16'"
+        class="fixed top-0 left-0 h-full bg-blue-900 text-white transition-all duration-300 overflow-x-hidden z-50 md:w-16"
+        @click.outside="sidebarOpen = false">
+        <div class="menu">
+            <div class="menu-item">
+                <i class="bi bi-house-door"></i>
+                <span>Inicio</span>
+            </div>
+            @can('ver-conductores')
+                <div class="menu-item">
+                    <i class="bi bi-people-fill"></i>
+                    <a href="{{ route('drives.index') }}"><span>Clientes</span></a>
+                </div>
+            @endcan
+            @can('ver-mecanicos')
+                <div class="menu-item">
+                    <i class="bi bi-gear"></i>
+                    <a href="{{ route('mechanics.index') }}"><span>Mecánicos</span></a>
+                </div>
+            @endcan
+            @can('ver-vehiculos')
+                <div class="menu-item">
+                    <i class="bi bi-car-front-fill"></i>
+                    <a href="{{ route('cars.index') }}"><span>Vehículos</span></a>
+                </div>
+            @endcan
+            @can('ver-trabajadores')
+                <div class="menu-item">
+                    <i class="bi bi-pencil-square"></i>
+                    <a href="{{ route('workers.index') }}"><span>Registro de Trabajadores</span></a>
+                </div>
+            @endcan
+            @can('ver-servicios')
+                <div class="menu-item">
+                    <i class="bi bi-tools"></i>
+                    <a href="{{ route('services.index') }}"><span>Servicios Realizados</span></a>
+                </div>
+            @endcan
+            @can('ver-garantias')
+                <div class="menu-item">
+                    <i class="bi bi-gear"></i>
+                    <a href="{{ route('garantines.index') }}"><span>Garantías</span></a>
+                </div>
+            @endcan
+            @can('ver-productos')
+                <div class="menu-item">
+                    <i class="bi bi-list-ul"></i>
+                    <a href="{{ route('products.index') }}"><span>Productos</span></a>
+                </div>
+            @endcan
+            <div class="menu-item">
+                <i class="bi bi-cart"></i>
+                <a href="{{ route('sales.index') }}"><span>Ventas</span></a>
+            </div>
+            <div class="menu-item">
+                <i class="bi bi-file-earmark-text"></i>
+                <a href="{{ route('quotations.index') }}"><span>Cotizaciones</span></a>
+            </div>
+            <div class="menu-item">
+                <i class="bi bi-people"></i>
+                <a href="{{ route('wholesalers.index') }}"><span>Mayoristas</span></a>
             </div>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
+            <!-- Separador -->
+            <hr class="menu-separator">
 
-                <!-- Authentication -->
+            <!-- Perfil y Cerrar sesión -->
+            <div class="menu-item">
+                <i class="bi bi-person-circle"></i>
+                <a href="{{ route('profile.edit') }}"><span>Perfil</span></a>
+            </div>
+            <div class="menu-item">
+                <i class="bi bi-box-arrow-right"></i>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                    <button type="submit" class="logout-btn">
+                        <span>Cerrar Sesión</span>
+                    </button>
                 </form>
             </div>
         </div>
-    </div>
-</nav>
+    </aside>
+</div>

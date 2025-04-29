@@ -1,0 +1,25 @@
+[06-Feb-2025 12:20:09 America/Santiago] PHP Warning:  require(/home/clticomd/biker-v10/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:20:09 America/Santiago] PHP Fatal error:  Uncaught Error: Failed opening required '/home/clticomd/biker-v10/public/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/clticomd/biker-v10/public/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:20:13 America/Santiago] PHP Warning:  require(/home/clticomd/biker-v10/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:20:13 America/Santiago] PHP Fatal error:  Uncaught Error: Failed opening required '/home/clticomd/biker-v10/public/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/clticomd/biker-v10/public/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:20:14 America/Santiago] PHP Warning:  require(/home/clticomd/biker-v10/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:20:14 America/Santiago] PHP Fatal error:  Uncaught Error: Failed opening required '/home/clticomd/biker-v10/public/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/clticomd/biker-v10/public/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:20:23 America/Santiago] PHP Warning:  require(/home/clticomd/biker-v10/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:20:23 America/Santiago] PHP Fatal error:  Uncaught Error: Failed opening required '/home/clticomd/biker-v10/public/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/clticomd/biker-v10/public/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:28:25 America/Santiago] PHP Warning:  require(/home/clticomd/biker-v10/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/clticomd/biker-v10/public/index.php on line 34
+[06-Feb-2025 12:28:25 America/Santiago] PHP Fatal error:  Uncaught Error: Failed opening required '/home/clticomd/biker-v10/public/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/clticomd/biker-v10/public/index.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/clticomd/biker-v10/public/index.php on line 34
