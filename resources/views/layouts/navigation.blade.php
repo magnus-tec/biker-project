@@ -182,7 +182,11 @@
                 <i class="bi bi-people"></i>
                 <a href="{{ route('wholesalers.index') }}"><span>Mayoristas</span></a>
             </div>
-
+            <div class="menu-item">
+                <i class="bi bi-people"></i>
+                <a href="{{ route('buys.index') }}"><span>Compras</span></a>
+            </div>
+            
             <!-- Separador -->
             <hr class="menu-separator">
 

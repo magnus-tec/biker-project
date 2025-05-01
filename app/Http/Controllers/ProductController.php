@@ -175,7 +175,7 @@ class ProductController extends Controller
     {
         $buscar = $request->buscar;
         $query = Product::where('status', 1)
-            ->with('brand', 'unit', 'warehouse', 'images', 'prices');
+            ->with('brand', 'unit', 'warehouse', 'images', 'prices','stock');
 
         if (!empty($buscar)) {
             $query->where(function ($q) use ($buscar) {
